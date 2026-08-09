@@ -69,3 +69,42 @@ def test_pricing_is_per_million_tokens():
     assert price("claude-opus-5", 1_000_000, 1_000_000) == 30.0
     # Unknown / local models are free, not a crash.
     assert price("qwen2.5:7b", 999, 999) == 0.0
+
+
+def test_ollama_keeps_tool_arguments_as_an_object():
+    """The bug a live run found: OpenAI wants a JSON string here, Ollama a dict.
+
+    Sending OpenAI's shape to Ollama returns a 400 reading
+    "Value looks like object, but can't find closing '}' symbol".
+    """
+    from dataagent.llm import _to_ollama
+
+    msgs = [
+        {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [ToolCall("t1", "run_sql", {"sql": "SELECT 1"})],
+        }
+    ]
+    args = _to_ollama(msgs)[0]["tool_calls"][0]["function"]["arguments"]
+    assert args == {"sql": "SELECT 1"}, "must stay a dict, not a serialised string"
+    assert not isinstance(args, str)
+
+
+def test_ollama_matches_tool_results_by_name_not_id():
+    """Ollama ignores tool_call_id, so the name must be carried across."""
+    from dataagent.llm import _to_ollama
+
+    msgs = [
+        {"role": "user", "content": "count"},
+        {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [ToolCall("t1", "run_sql", {"sql": "SELECT 1"})],
+        },
+        {"role": "tool", "tool_call_id": "t1", "content": "1"},
+    ]
+    result = _to_ollama(msgs)[2]
+    assert result["role"] == "tool"
+    assert result["tool_name"] == "run_sql"
+    assert result["content"] == "1"

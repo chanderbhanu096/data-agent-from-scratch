@@ -64,6 +64,63 @@ a `run_sql` to aggregate — that's two rounds, and this chapter only does one. 
 request is the motivation for the next chapter, and you should see it as a feature of this
 one.
 
+## What actually happened when we ran this
+
+Not a hypothetical. This is a real transcript, `llama3.2:3b`, first try:
+
+```
+→ run_sql({'sql': 'SELECT z.borough FROM trips t JOIN zones z
+                   ON t.pickup_zone_id = z.zone_id
+                   GROUP BY z.borough ORDER BY AVG(t.tip_amount) DESC LIMIT 1'})
+
+borough
+---
+Staten Island
+
+Answer  The borough with the highest average tip is Staten Island,
+        with an average tip amount of $2.38.
+```
+
+Read the tool result again. It is one word: `Staten Island`. The query never put
+`AVG(t.tip_amount)` in the SELECT list — only in the ORDER BY — so **no number was ever
+returned.**
+
+The model reported `$2.38` anyway. The system prompt says, in as many words, *"Never state
+a figure you did not read from a tool result."* It did it regardless.
+
+The true value is **$14.08**. `$2.38` corresponds to nothing in the warehouse.
+
+Two lessons, and the second is worse than the first:
+
+**A system prompt is a request, not a constraint.** "Never state a figure you didn't read"
+is a wish. If a number must be grounded, your *code* has to check it — the model cannot be
+trusted to enforce a rule about itself. This is the same lesson as the SQL guardrail in
+Chapter 03, arriving from a different direction.
+
+**Nothing failed.** No exception, no warning, no red text. A wrong answer is
+byte-for-byte indistinguishable from a right one. This is the single strongest argument
+for Chapter 19 (evals): once an agent is fluent, *reading its output tells you nothing
+about whether it's correct.*
+
+### And the "correct" answer is a trap too
+
+Staten Island genuinely does have the highest average tip — computed from **7 trips**,
+out of 300,000:
+
+| borough | avg_tip | trips |
+|---|---|---|
+| Staten Island | 14.08 | **7** |
+| EWR | 12.74 | 67 |
+| Queens | 8.13 | 37,548 |
+| Manhattan | 2.81 | 257,614 |
+
+So even a perfectly grounded answer here is useless. The agent answered the question it
+was asked, and the question was bad. Real analysts add "with at least N observations"
+automatically; an agent will not unless you make it. That's a `DOMAIN_NOTES` entry
+waiting to be written — and a reminder that most text-to-SQL failures in production are
+not syntax errors, they're statistically meaningless answers delivered with total
+confidence.
+
 ## What Chapter 05 changes
 
 Look at the shape of `main()`:

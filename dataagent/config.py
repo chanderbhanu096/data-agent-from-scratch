@@ -31,6 +31,10 @@ class Settings:
     max_usd: float
     sql_row_limit: int
 
+    # How long to wait on one model call. Generous, because a local model that
+    # doesn't fit in GPU memory runs on the CPU and gets very slow.
+    timeout_s: float
+
 
 def _model_for(provider: str) -> tuple[str, str | None]:
     """Return (model, base_url) for the chosen provider."""
@@ -59,4 +63,5 @@ def load_settings() -> Settings:
         max_steps=int(os.getenv("DATAAGENT_MAX_STEPS", "12")),
         max_usd=float(os.getenv("DATAAGENT_MAX_USD", "0.50")),
         sql_row_limit=int(os.getenv("DATAAGENT_SQL_ROW_LIMIT", "1000")),
+        timeout_s=float(os.getenv("DATAAGENT_TIMEOUT_S", "600")),
     )

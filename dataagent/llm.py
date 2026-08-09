@@ -296,7 +296,9 @@ class LLM:
 
         payload: dict[str, Any] = {
             "model": self.model,
-            "messages": _to_openai(msgs),
+            # NOT _to_openai(). Ollama's API is OpenAI-shaped but diverges on
+            # exactly one field, and it matters — see _to_ollama().
+            "messages": _to_ollama(msgs),
             "stream": False,
             "options": {"num_predict": max_tokens},
         }
@@ -315,15 +317,48 @@ class LLM:
 
         base = self.settings.base_url or "http://localhost:11434"
         try:
-            r = httpx.post(f"{base}/api/chat", json=payload, timeout=300.0)
+            r = httpx.post(f"{base}/api/chat", json=payload, timeout=self.settings.timeout_s)
             r.raise_for_status()
-        except httpx.ConnectError as exc:
-            raise RuntimeError(
+
+        except httpx.ConnectError:
+            raise ProviderError(
                 f"Cannot reach Ollama at {base}.\n"
                 "  1. Install it:  https://ollama.com\n"
-                f"  2. Pull a model:  ollama pull {self.model}\n"
-                "  3. Or switch provider in .env (DATAAGENT_PROVIDER=anthropic)"
-            ) from exc
+                "  2. Start it:    ollama serve\n"
+                f"  3. Pull a model:  ollama pull {self.model}\n"
+                "  4. Or switch provider in .env (DATAAGENT_PROVIDER=anthropic)"
+            ) from None
+
+        except httpx.TimeoutException:
+            # Almost always the model being too big for available VRAM, so it
+            # spills onto the CPU and crawls. Measured on an 8 GB M2: an 8B
+            # model produced roughly one token every eleven seconds, while a 3B
+            # model on the same machine was usable. Size down before you wait.
+            raise ProviderError(
+                f"Ollama did not respond within {self.settings.timeout_s:.0f}s "
+                f"({self.model}).\n\n"
+                "Usually the model is too large for your GPU memory and has spilled\n"
+                "onto the CPU. Options, best first:\n"
+                "  • Use a smaller model:  ollama pull llama3.2:3b\n"
+                "    then set OLLAMA_MODEL=llama3.2:3b in .env\n"
+                "  • Raise the ceiling:    DATAAGENT_TIMEOUT_S=1200 in .env\n"
+                "  • Check what it's doing:  ollama ps"
+            ) from None
+
+        except httpx.HTTPStatusError as exc:
+            detail = exc.response.text[:300]
+            hint = (
+                f"\n\nThe model {self.model!r} may not be pulled yet. "
+                f"Try:  ollama pull {self.model}"
+                if exc.response.status_code == 404
+                else ""
+            )
+            raise ProviderError(
+                f"Ollama returned {exc.response.status_code}.\n\n{detail}{hint}"
+            ) from None
+
+        except httpx.HTTPError as exc:
+            raise ProviderError(f"Ollama request failed: {exc}") from None
 
         data = r.json()
         msg = data.get("message", {})
@@ -373,6 +408,53 @@ def _to_openai(messages: list[Message]) -> list[dict[str, Any]]:
             )
         else:
             out.append({"role": m["role"], "content": m.get("content") or ""})
+    return out
+
+
+def _to_ollama(messages: list[Message]) -> list[dict[str, Any]]:
+    """Canonical -> Ollama.
+
+    Ollama's chat API looks like OpenAI's, which is a trap. Two differences,
+    both discovered the hard way by sending a real tool result back:
+
+      * `arguments` is a JSON **object**. OpenAI wants a serialised string.
+        Send OpenAI's shape and Ollama replies with a 400 reading
+        "Value looks like object, but can't find closing '}' symbol" — which
+        is about as unhelpful an error as you will ever get.
+
+      * Tool results are matched by `tool_name`, not `tool_call_id`. Ollama
+        ignores the id entirely, so we resolve the name from the assistant
+        message that requested the call.
+    """
+    id_to_name: dict[str, str] = {}
+    out: list[dict[str, Any]] = []
+
+    for m in messages:
+        if m["role"] == "assistant" and m.get("tool_calls"):
+            for c in m["tool_calls"]:
+                id_to_name[c.id] = c.name
+            out.append(
+                {
+                    "role": "assistant",
+                    "content": m.get("content") or "",
+                    "tool_calls": [
+                        # arguments stays a dict — this is the whole point.
+                        {"function": {"name": c.name, "arguments": c.arguments}}
+                        for c in m["tool_calls"]
+                    ],
+                }
+            )
+        elif m["role"] == "tool":
+            out.append(
+                {
+                    "role": "tool",
+                    "tool_name": id_to_name.get(m.get("tool_call_id", ""), ""),
+                    "content": str(m["content"]),
+                }
+            )
+        else:
+            out.append({"role": m["role"], "content": m.get("content") or ""})
+
     return out
 
 
