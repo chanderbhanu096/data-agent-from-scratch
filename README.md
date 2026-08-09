@@ -2,10 +2,12 @@
 
 # Data Agent From Scratch
 
-### Build a production text-to-SQL agent, one honest chapter at a time.
+### Stop writing SQL. Build the thing that writes it for you.
 
-**No frameworks. No black boxes. No hardcoded demo.**
-Ask a question in English → the agent writes SQL, *checks its own SQL*, runs it, and answers.
+**Ask in plain English. The agent writes the SQL, checks it, runs it, and answers.**
+You don't need to know SQL to use it — you need to know how to *build* it. That's this repo.
+
+*No frameworks. No black boxes. No hardcoded demo.*
 
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](https://python.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -18,6 +20,38 @@ Ask a question in English → the agent writes SQL, *checks its own SQL*, runs i
 > **Everything here runs.** Every chapter is executable code with a test. There is no
 > demo mode, no canned response, no "imagine this returns…". If it can't run for real,
 > it isn't in this repo.
+
+## What that looks like
+
+You type this:
+
+> *"What is the average tip amount by payment type? Show the payment type name."*
+
+It writes this, by itself, from nothing but the schema:
+
+```sql
+SELECT pt.payment_type, AVG(t.tip_amount) AS avg_tip_amount
+FROM trips t
+JOIN payment_types pt ON t.payment_type_id = pt.payment_type_id
+GROUP BY pt.payment_type
+LIMIT 100
+```
+
+And you get this:
+
+| payment_type | avg_tip_amount |
+|---|---|
+| Credit card | 4.508 |
+| Dispute | 0.055 |
+| No charge | 0.024 |
+| Cash | 0.0009935 |
+
+Real output, real 300,000-row warehouse, `llama3.2:3b` running offline on a laptop. Not a
+screenshot of someone else's demo.
+
+*(And there's a genuine finding sitting in that table: cash tips are effectively zero —
+not because nobody tips in cash, but because cash tips never get recorded. The agent
+surfaced it; noticing what it means is still your job.)*
 
 ## Why this exists
 
