@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install
+        run: pip install -e ".[all]"
+
+      # The warehouse is ~50 MB of NYC taxi data. Cache it so CI doesn't hammer
+      # the TLC's CDN on every push.
+      - name: Cache warehouse
+        id: warehouse-cache
+        uses: actions/cache@v4
+        with:
+          path: data/
+          key: warehouse-2024-01-v1
+
+      - name: Build warehouse
+        if: steps.warehouse-cache.outputs.cache-hit != 'true'
+        run: python scripts/build_warehouse.py
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Format check
+        run: ruff format --check .
+
+      # No API key is set here on purpose. Everything below runs against the
+      # real warehouse and the scripted test double — so a fork's PR gets the
+      # full suite without needing secrets.
+      - name: Test
+        run: pytest -q
