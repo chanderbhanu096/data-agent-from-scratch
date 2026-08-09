@@ -107,6 +107,52 @@ def price(model: str, usage_in: int, usage_out: int) -> float:
     return (usage_in / 1_000_000) * rate_in + (usage_out / 1_000_000) * rate_out
 
 
+# ── Provider errors ───────────────────────────────────────────────────────────
+
+
+class ProviderError(RuntimeError):
+    """A provider rejected the request, translated into something actionable.
+
+    The SDKs raise rich exception types with useful detail buried in a traceback
+    twenty frames deep. A learner hitting "credit balance too low" on their first
+    run should see that sentence and a fix, not a stack trace — so every provider
+    call is funnelled through `_translate_api_error`.
+    """
+
+
+def _translate_api_error(exc: Exception, provider: str, model: str) -> ProviderError:
+    status = getattr(exc, "status_code", None)
+    detail = str(getattr(exc, "message", "") or exc)
+    low = detail.lower()
+
+    if "credit balance" in low or "billing" in low:
+        fix = (
+            f"Your {provider} account has no credits.\n"
+            "  • Add credits at https://console.anthropic.com/settings/billing\n"
+            "  • Or switch to a free local model: set DATAAGENT_PROVIDER=ollama in .env"
+        )
+    elif status == 401 or "authentication" in low or "invalid x-api-key" in low:
+        fix = (
+            f"The {provider} API key was rejected.\n"
+            "  • Check the key in .env has no stray spaces or quotes\n"
+            "  • Confirm it's the whole key, and in ANTHROPIC_API_KEY (not ANTHROPIC_MODEL)"
+        )
+    elif status == 404 or "not_found" in low or "does not exist" in low:
+        fix = (
+            f"The model {model!r} was not found.\n"
+            "  • Check ANTHROPIC_MODEL in .env — e.g. claude-sonnet-5, claude-haiku-4-5\n"
+            "  • Model names change; a name that worked last year may not today"
+        )
+    elif status == 429 or "rate limit" in low:
+        fix = "Rate limited. Wait a moment and re-run, or switch to a smaller model."
+    elif status in (500, 502, 503, 529):
+        fix = f"{provider} is temporarily unavailable ({status}). Re-run in a minute."
+    else:
+        fix = f"Set DATAAGENT_PROVIDER=ollama in .env to continue without {provider}."
+
+    return ProviderError(f"{provider} request failed.\n\n{detail}\n\n{fix}")
+
+
 # ── Gateway ───────────────────────────────────────────────────────────────────
 
 
@@ -165,7 +211,10 @@ class LLM:
 
         # Note what is NOT here: temperature, top_p, top_k. Current Claude models
         # reject them outright. Steer with the prompt instead — chapter 03.
-        resp = client.messages.create(**kwargs)
+        try:
+            resp = client.messages.create(**kwargs)
+        except Exception as exc:
+            raise _translate_api_error(exc, "Anthropic", self.model) from None
 
         text_parts, calls = [], []
         for block in resp.content:
@@ -215,7 +264,11 @@ class LLM:
                 for t in tools
             ]
 
-        resp = client.chat.completions.create(**kwargs)
+        try:
+            resp = client.chat.completions.create(**kwargs)
+        except Exception as exc:
+            raise _translate_api_error(exc, "OpenAI", self.model) from None
+
         choice = resp.choices[0]
         calls = [
             ToolCall(c.id, c.function.name, json.loads(c.function.arguments or "{}"))
