@@ -92,15 +92,15 @@ An agent is a `while` loop. Everything else is engineering around it.
 
 ```python
 while True:
-    reply = model(messages, tools)      # 1. THINK
+    reply = model(messages, tools)  # 1. THINK
     messages.append(reply)
 
-    if not reply.tool_calls:            # 2. DONE?
+    if not reply.tool_calls:  # 2. DONE?
         return reply.text
 
-    for call in reply.tool_calls:       # 3. ACT
+    for call in reply.tool_calls:  # 3. ACT
         result = execute(call)
-        messages.append(result)         # 4. OBSERVE
+        messages.append(result)  # 4. OBSERVE
 ```
 
 Four steps. A model cannot *do* anything — it can only emit text. A "tool call" is the

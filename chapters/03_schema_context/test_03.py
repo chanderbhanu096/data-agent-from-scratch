@@ -60,6 +60,25 @@ def test_guardrail_allows_read_only_sql(sql):
     assert_safe(sql)
 
 
+@pytest.mark.parametrize(
+    "sql",
+    [
+        "WITH x AS (SELECT 1) DELETE FROM trips",
+        "SELECT * FROM trips WHERE 1=1 UNION SELECT * FROM (COPY trips TO '/tmp/x')",
+        "WITH evil AS (DROP TABLE trips) SELECT 1",
+    ],
+)
+def test_guardrail_blocks_forbidden_keywords_past_the_first_word(sql):
+    """The two layers of assert_safe() catch different things.
+
+    The first-word check only inspects where the statement starts. These queries
+    open with an allowed keyword and smuggle the dangerous one further in — they
+    are caught by the _FORBIDDEN scan, and nothing else.
+    """
+    with pytest.raises(UnsafeSQL):
+        assert_safe(sql)
+
+
 def test_row_limit_is_enforced_and_flagged():
     result = run_sql("SELECT * FROM trips", row_limit=10)
     assert len(result.rows) == 10
