@@ -193,7 +193,7 @@ class LLM:
         tools: list[Tool] | None,
         max_tokens: int,
     ) -> Reply:
-        from anthropic import Anthropic
+        from anthropic import Anthropic, AnthropicError
 
         client = Anthropic()
         kwargs: dict[str, Any] = {
@@ -213,7 +213,7 @@ class LLM:
         # reject them outright. Steer with the prompt instead — chapter 03.
         try:
             resp = client.messages.create(**kwargs)
-        except Exception as exc:
+        except AnthropicError as exc:
             raise _translate_api_error(exc, "Anthropic", self.model) from None
 
         text_parts, calls = [], []
@@ -239,7 +239,7 @@ class LLM:
         tools: list[Tool] | None,
         max_tokens: int,
     ) -> Reply:
-        from openai import OpenAI
+        from openai import OpenAI, OpenAIError
 
         client = OpenAI()
         msgs = list(messages)
@@ -266,7 +266,7 @@ class LLM:
 
         try:
             resp = client.chat.completions.create(**kwargs)
-        except Exception as exc:
+        except OpenAIError as exc:
             raise _translate_api_error(exc, "OpenAI", self.model) from None
 
         choice = resp.choices[0]
