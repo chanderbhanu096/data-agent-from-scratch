@@ -75,6 +75,7 @@ python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 cp .env.example .env
 python scripts/build_warehouse.py     # downloads 50 MB of real NYC taxi data
+ollama pull qwen2.5:3b                # 1.9 GB, free, runs offline
 python chapters/01_first_call/run.py
 ```
 
