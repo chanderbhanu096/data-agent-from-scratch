@@ -101,12 +101,12 @@ sitting — that's the constraint each chapter is written under.
 
 <table>
 <tr><td width="60"><b>Tier 0</b></td><td><b>Foundations</b> — what an LLM call actually is</td></tr>
-<tr><td>01</td><td>Your first call · tokens, cost, and why the model can't answer yet</td></tr>
-<tr><td>02</td><td>Structured output · getting JSON you can trust, and retrying when you can't</td></tr>
-<tr><td>03</td><td>Schema as context · the moment it starts writing real SQL</td></tr>
-<tr><td>04</td><td>Tool calling · handing it the database, from scratch</td></tr>
+<tr><td>01</td><td>Your first call · tokens, cost, and why the model can't answer yet ✅</td></tr>
+<tr><td>02</td><td>Structured output · getting JSON you can trust, and retrying when you can't ✅</td></tr>
+<tr><td>03</td><td>Schema as context · the moment it starts writing real SQL ✅</td></tr>
+<tr><td>04</td><td>Tool calling · handing it the database, from scratch ✅</td></tr>
 <tr><td><b>Tier 1</b></td><td><b>The agent loop</b></td></tr>
-<tr><td>05</td><td><b>The loop, ~200 lines, no framework</b> ← the centrepiece</td></tr>
+<tr><td>05</td><td><b>The loop from scratch, no framework</b> ← the centrepiece ✅</td></tr>
 <tr><td>06</td><td>Self-correction · it reads its own SQL error and fixes it</td></tr>
 <tr><td>07</td><td>Guardrails · step caps, cost caps, and blocking <code>DROP TABLE</code></td></tr>
 <tr><td>08</td><td>The same agent on LangGraph · an honest comparison</td></tr>
@@ -118,7 +118,7 @@ sitting — that's the constraint each chapter is written under.
 <tr><td>19–24</td><td>Execution-accuracy evals in CI · tracing · prompt-injection defence · human approval · cost routing · deploy</td></tr>
 </table>
 
-Tier 0–1 are here now. Later tiers land tier by tier — watch the repo.
+Chapters 01–05 are here and runnable now (✅). Later tiers land tier by tier — watch the repo.
 
 ## The one idea
 
