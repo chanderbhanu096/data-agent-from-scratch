@@ -1,0 +1,38 @@
+# Multi-turn sequences for chapter 11. The `setup` turn establishes context; the
+# `followup` is the turn that's scored — it only means something if the agent
+# carried the first turn's intent forward. Each tests a different kind of
+# reference the follow-up leaves implicit.
+
+- id: borough_swap
+  setup: How many trips started in Manhattan?
+  followup: And how many started in Queens?
+  # implicit: "trips that started in <borough>" — swap the borough
+  reference_sql: |
+    SELECT count(*) FROM trips t JOIN zones z ON t.pickup_zone_id = z.zone_id
+    WHERE z.borough = 'Queens'
+
+- id: payment_swap
+  setup: How many trips were paid by credit card?
+  followup: What about cash?
+  # implicit: "how many trips were paid by <method>"
+  reference_sql: |
+    SELECT count(*) FROM trips t JOIN payment_types p ON t.payment_type_id = p.payment_type_id
+    WHERE p.payment_type = 'Cash'
+
+- id: entity_carryover
+  setup: Which borough has the most taxi zones?
+  followup: How many zones does Manhattan have?
+  # implicit: the subject is still "taxi zones in a borough"
+  reference_sql: SELECT count(*) FROM zones WHERE borough = 'Manhattan'
+
+- id: those_pronoun
+  setup: How many trips are in the warehouse?
+  followup: How many of those cost more than 100 dollars?
+  # implicit: "those" = all the trips from the previous turn
+  reference_sql: SELECT count(*) FROM trips WHERE total_amount > 100
+
+- id: add_filter
+  setup: What is the average trip distance in miles?
+  followup: What about only for trips longer than 10 miles?
+  # implicit: same metric (average distance), plus a filter
+  reference_sql: SELECT round(avg(trip_distance_miles), 2) FROM trips WHERE trip_distance_miles > 10
