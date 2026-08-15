@@ -1,0 +1,200 @@
+# Golden question set — execution-accuracy evals.
+#
+# Each case carries a reference_sql whose result IS the ground truth. Nothing is
+# hardcoded: expected values are computed by running that SQL against the real
+# warehouse at eval time, so the set stays correct if the data is rebuilt.
+#
+# Many cases also carry a trap_sql — a *plausible wrong query* a model actually
+# tends to write. Its result must NOT appear in the answer. That is what turns
+# "did it say a number" into "did it answer the question I asked", and it is
+# where most of the signal in this file lives.
+#
+# expect:
+#   first_cell   row 0, column 0 of the reference result must appear in the answer
+#   first_label  row 0, column 0 (a name/label) must appear
+#   refuse       the agent must decline rather than answer
+
+- id: total_trips
+  question: How many taxi trips are in the warehouse?
+  difficulty: easy
+  reference_sql: SELECT count(*) FROM trips
+  expect: first_cell
+
+- id: manhattan_trip_count
+  question: How many trips started in Manhattan?
+  difficulty: easy
+  reference_sql: |
+    SELECT count(*) FROM trips t
+    JOIN zones z ON t.pickup_zone_id = z.zone_id
+    WHERE z.borough = 'Manhattan'
+  expect: first_cell
+  trap_sql: SELECT count(*) FROM zones WHERE borough = 'Manhattan'
+  trap_note: counts Manhattan zones (69) instead of trips (257,614)
+
+- id: brooklyn_zone_count
+  question: How many distinct taxi zones are in Brooklyn?
+  difficulty: easy
+  reference_sql: SELECT count(*) FROM zones WHERE borough = 'Brooklyn'
+  expect: first_cell
+  trap_sql: |
+    SELECT count(*) FROM trips t JOIN zones z ON t.pickup_zone_id = z.zone_id
+    WHERE z.borough = 'Brooklyn'
+  trap_note: the mirror image of manhattan_trip_count — counts trips, not zones
+
+- id: top_payment_type_by_tip
+  question: Which payment type has the highest average tip? Give the name, not the id.
+  difficulty: easy
+  reference_sql: |
+    SELECT pt.payment_type FROM trips t
+    JOIN payment_types pt ON t.payment_type_id = pt.payment_type_id
+    GROUP BY pt.payment_type ORDER BY avg(t.tip_amount) DESC LIMIT 1
+  expect: first_label
+
+- id: avg_trip_distance
+  question: What is the average trip distance in miles?
+  difficulty: easy
+  reference_sql: SELECT round(avg(trip_distance_miles), 2) FROM trips
+  expect: first_cell
+
+- id: busiest_pickup_zone
+  question: Which pickup zone has the most trips?
+  difficulty: easy
+  reference_sql: |
+    SELECT z.zone_name FROM trips t
+    JOIN zones z ON t.pickup_zone_id = z.zone_id
+    GROUP BY z.zone_name ORDER BY count(*) DESC LIMIT 1
+  expect: first_label
+
+- id: expensive_trips_count
+  question: How many trips had a total amount over 100 dollars?
+  difficulty: easy
+  reference_sql: SELECT count(*) FROM trips WHERE total_amount > 100
+  expect: first_cell
+
+# ── The cases this whole exercise exists for ─────────────────────────────────
+# Every one has a minimum-count constraint that models routinely drop.
+
+- id: top_zone_avg_fare_min500
+  question: Which pickup zone has the highest average total fare, among zones with at least 500 trips?
+  difficulty: hard
+  reference_sql: |
+    SELECT z.zone_name FROM trips t
+    JOIN zones z ON t.pickup_zone_id = z.zone_id
+    GROUP BY z.zone_name HAVING count(*) >= 500
+    ORDER BY avg(t.total_amount) DESC LIMIT 1
+  expect: first_label
+  trap_sql: |
+    SELECT z.zone_name FROM trips t
+    JOIN zones z ON t.pickup_zone_id = z.zone_id
+    GROUP BY z.zone_name ORDER BY avg(t.total_amount) DESC LIMIT 1
+  trap_note: drops HAVING — returns a zone backed by a single trip
+
+- id: top_borough_avg_tip_min1000
+  question: Which borough has the highest average tip? Ignore boroughs with fewer than 1000 trips.
+  difficulty: hard
+  reference_sql: |
+    SELECT z.borough FROM trips t
+    JOIN zones z ON t.pickup_zone_id = z.zone_id
+    GROUP BY z.borough HAVING count(*) >= 1000
+    ORDER BY avg(t.tip_amount) DESC LIMIT 1
+  expect: first_label
+  trap_sql: |
+    SELECT z.borough FROM trips t
+    JOIN zones z ON t.pickup_zone_id = z.zone_id
+    GROUP BY z.borough ORDER BY avg(t.tip_amount) DESC LIMIT 1
+  trap_note: drops HAVING — returns Staten Island, backed by 7 trips
+
+- id: top_zone_longest_trips_min200
+  question: Which pickup zone has the longest average trip distance, counting only zones with at least 200 trips?
+  difficulty: hard
+  reference_sql: |
+    SELECT z.zone_name FROM trips t
+    JOIN zones z ON t.pickup_zone_id = z.zone_id
+    GROUP BY z.zone_name HAVING count(*) >= 200
+    ORDER BY avg(t.trip_distance_miles) DESC LIMIT 1
+  expect: first_label
+  trap_sql: |
+    SELECT z.zone_name FROM trips t
+    JOIN zones z ON t.pickup_zone_id = z.zone_id
+    GROUP BY z.zone_name ORDER BY avg(t.trip_distance_miles) DESC LIMIT 1
+  trap_note: drops HAVING
+
+- id: dropoff_borough_avg_total_min1000
+  question: >-
+    Among the real boroughs (exclude 'N/A' and 'Unknown'), which dropoff borough has the
+    highest average total amount, counting only boroughs with at least 1000 dropoffs?
+  difficulty: hard
+  reference_sql: |
+    SELECT z.borough FROM trips t
+    JOIN zones z ON t.dropoff_zone_id = z.zone_id
+    WHERE z.borough NOT IN ('N/A', 'Unknown')
+    GROUP BY z.borough HAVING count(*) >= 1000
+    ORDER BY avg(t.total_amount) DESC LIMIT 1
+  expect: first_label
+  trap_sql: |
+    SELECT z.borough FROM trips t
+    JOIN zones z ON t.pickup_zone_id = z.zone_id
+    WHERE z.borough NOT IN ('N/A', 'Unknown')
+    GROUP BY z.borough HAVING count(*) >= 1000
+    ORDER BY avg(t.total_amount) DESC LIMIT 1
+  trap_note: joins on pickup instead of dropoff
+
+# ── Multi-constraint ─────────────────────────────────────────────────────────
+
+- id: card_trips_manhattan
+  question: How many trips starting in Manhattan were paid by credit card?
+  difficulty: medium
+  reference_sql: |
+    SELECT count(*) FROM trips t
+    JOIN zones z ON t.pickup_zone_id = z.zone_id
+    JOIN payment_types pt ON t.payment_type_id = pt.payment_type_id
+    WHERE z.borough = 'Manhattan' AND pt.payment_type = 'Credit card'
+  expect: first_cell
+  trap_sql: |
+    SELECT count(*) FROM trips t
+    JOIN zones z ON t.pickup_zone_id = z.zone_id
+    WHERE z.borough = 'Manhattan'
+  trap_note: ignores the payment-type filter
+
+- id: avg_tip_credit_card
+  question: What is the average tip for credit card trips, in dollars?
+  difficulty: medium
+  reference_sql: |
+    SELECT round(avg(t.tip_amount), 2) FROM trips t
+    JOIN payment_types pt ON t.payment_type_id = pt.payment_type_id
+    WHERE pt.payment_type = 'Credit card'
+  expect: first_cell
+  trap_sql: SELECT round(avg(tip_amount), 2) FROM trips
+  trap_note: averages over all payment types
+
+- id: jfk_avg_fare
+  question: What is the average total amount for trips picked up at JFK Airport?
+  difficulty: medium
+  reference_sql: |
+    SELECT round(avg(t.total_amount), 2) FROM trips t
+    JOIN zones z ON t.pickup_zone_id = z.zone_id
+    WHERE z.zone_name = 'JFK Airport'
+  expect: first_cell
+
+- id: queens_trip_count
+  question: How many trips started in Queens?
+  difficulty: easy
+  reference_sql: |
+    SELECT count(*) FROM trips t
+    JOIN zones z ON t.pickup_zone_id = z.zone_id
+    WHERE z.borough = 'Queens'
+  expect: first_cell
+
+# ── Must decline ─────────────────────────────────────────────────────────────
+
+- id: unanswerable_weather
+  question: What was the weather in New York on January 15th 2024?
+  difficulty: medium
+  expect: refuse
+  refuse_keywords: [cannot, can't, no data, not available, unable, does not contain, no information]
+
+- id: unanswerable_driver_names
+  question: Which driver earned the most in tips?
+  difficulty: medium
+  expect: refuse
+  refuse_keywords: [cannot, can't, no data, not available, unable, does not contain, does not include, doesn't include, no information, no driver]
