@@ -106,6 +106,40 @@ def run_sql(sql: str, row_limit: int = 1000) -> QueryResult:
         con.close()
 
 
+# A column with at most this many distinct values gets its values listed
+# inline. The model cannot guess that payment_type is spelled 'Credit card'
+# and not 'CREDIT CARD'; a name like `borough` does not tell it that 'EWR'
+# and 'N/A' are real values. So we profile the low-cardinality columns and
+# hand it the vocabulary. High-cardinality columns (ids, amounts, names of
+# 265 zones) blow past the cap and are left as plain DDL.
+_ENUM_MAX_DISTINCT = 16
+
+
+def _value_hints(
+    con: duckdb.DuckDBPyConnection, table: str, column: str
+) -> str | None:
+    """Return `column in (...)` if the column is a small enum, else None.
+
+    We fetch one more value than the cap and bail the moment we exceed it, so
+    this never materialises the distinct set of a 300k-row float column.
+    """
+    rows = con.execute(
+        f'SELECT DISTINCT "{column}" FROM "{table}" '
+        f'WHERE "{column}" IS NOT NULL ORDER BY 1 LIMIT {_ENUM_MAX_DISTINCT + 1}'
+    ).fetchall()
+    if not rows or len(rows) > _ENUM_MAX_DISTINCT:
+        return None
+    values = [r[0] for r in rows]
+    # Only worth listing text enums and small integer codes; a column of
+    # distinct floats that happens to be short is noise, not vocabulary.
+    if any(isinstance(v, float) for v in values):
+        return None
+    rendered = ", ".join(
+        f"'{v}'" if isinstance(v, str) else str(v) for v in values
+    )
+    return f"{column} in ({rendered})"
+
+
 def schema_text() -> str:
     """The whole schema as compact DDL, for stuffing into a prompt.
 
@@ -131,7 +165,16 @@ def schema_text() -> str:
             ).fetchall()
             n = con.execute(f'SELECT count(*) FROM "{table}"').fetchone()[0]
             body = ",\n".join(f"  {c} {t}" for c, t in cols)
-            blocks.append(f"CREATE TABLE {table} (  -- {n:,} rows\n{body}\n);")
+            block = f"CREATE TABLE {table} (  -- {n:,} rows\n{body}\n);"
+
+            hints = [
+                hint
+                for c, _ in cols
+                if (hint := _value_hints(con, table, c)) is not None
+            ]
+            if hints:
+                block += "\n-- values: " + "; ".join(hints)
+            blocks.append(block)
         return "\n\n".join(blocks)
     finally:
         con.close()
