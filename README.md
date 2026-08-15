@@ -151,20 +151,21 @@ sitting — that's the constraint each chapter is written under.
 <tr><td>02</td><td>Structured output · getting JSON you can trust, and retrying when you can't ✅</td></tr>
 <tr><td>03</td><td>Schema as context · the moment it starts writing real SQL ✅</td></tr>
 <tr><td>04</td><td>Tool calling · handing it the database, from scratch ✅</td></tr>
-<tr><td><b>Tier 1</b></td><td><b>The agent loop</b></td></tr>
+<tr><td><b>Tier 1</b></td><td><b>The agent loop, made reliable</b></td></tr>
 <tr><td>05</td><td><b>The loop from scratch, no framework</b> ← the centrepiece ✅</td></tr>
-<tr><td>06</td><td>Self-correction · it reads its own SQL error and fixes it</td></tr>
-<tr><td>07</td><td>Guardrails · step caps, cost caps, and blocking <code>DROP TABLE</code></td></tr>
-<tr><td>08</td><td>The same agent on LangGraph · an honest comparison</td></tr>
-<tr><td><b>Tier 2</b></td><td><b>Retrieval</b> — when the schema stops fitting</td></tr>
-<tr><td>09–14</td><td>Embeddings from scratch (numpy, ~15 lines) → hybrid search → reranking → schema RAG</td></tr>
-<tr><td><b>Tier 3</b></td><td><b>Interop</b></td></tr>
-<tr><td>15–18</td><td>Build an MCP server · use it from Claude Desktop · memory · multi-agent</td></tr>
-<tr><td><b>Tier 4</b></td><td><b>Production</b> — the tier that gets you hired</td></tr>
-<tr><td>19–24</td><td>Execution-accuracy evals in CI · tracing · prompt-injection defence · human approval · cost routing · deploy</td></tr>
+<tr><td>06</td><td>Plan, verify, repair · check the query in code, don't ask the prompt nicely ✅</td></tr>
+<tr><td>07</td><td>Guardrails · block <code>DROP TABLE</code>, cross-join bombs, and prompt injection ✅</td></tr>
+<tr><td><b>Tier 2</b></td><td><b>Scale &amp; cost</b> — when the warehouse gets real</td></tr>
+<tr><td>08</td><td>Schema retrieval · BM25 from scratch; 94% held while the catalog grew 3→253 tables ✅</td></tr>
+<tr><td>09</td><td>Routing · free model for easy questions, frontier for hard; 79% at 47% paid calls ✅</td></tr>
+<tr><td>10</td><td>Few-shot · retrieved worked examples — and the honest measurement of when they hurt ✅</td></tr>
+<tr><td><b>Tier 3</b></td><td><b>Interaction &amp; production</b></td></tr>
+<tr><td>11</td><td>Conversation · multi-turn follow-ups that carry the thread ✅</td></tr>
+<tr><td>12+</td><td>Tracing · embeddings as the retrieval upgrade · an MCP server · multi-agent · deploy</td></tr>
 </table>
 
-Chapters 01–05 are here and runnable now (✅). Later tiers land tier by tier — watch the repo.
+Chapters 01–11 are here and runnable now (✅). Every ✅ chapter ships with a test and a
+measured result. Later chapters land as they're written — watch the repo.
 
 ## The one idea
 
