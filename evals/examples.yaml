@@ -1,0 +1,72 @@
+# Worked question→SQL examples for few-shot retrieval (chapter 10).
+#
+# These are DELIBERATELY NOT the golden eval questions. Retrieving a golden
+# question's own answer as an "example" would be measuring memorisation, not
+# generalisation — the leakage that makes most RAG benchmarks a lie. Every pair
+# here teaches a *pattern* (a join, a HAVING threshold, correct enum casing) that
+# transfers to the held-out golden set without ever handing it an answer.
+#
+# Every SQL below is validated against the warehouse by tests/test_examples runs.
+
+- question: How many trips were paid in cash?
+  sql: |
+    SELECT count(*) FROM trips t
+    JOIN payment_types p ON t.payment_type_id = p.payment_type_id
+    WHERE p.payment_type = 'Cash'
+
+- question: What is the total fare collected across all trips?
+  sql: SELECT sum(fare_amount) FROM trips
+
+- question: Which vendor recorded more trips?
+  sql: SELECT vendor_id, count(*) FROM trips GROUP BY vendor_id ORDER BY count(*) DESC LIMIT 1
+
+- question: What is the average number of passengers per trip?
+  sql: SELECT avg(passenger_count) FROM trips
+
+- question: Which borough contains the most taxi zones?
+  sql: SELECT borough, count(*) FROM zones GROUP BY borough ORDER BY count(*) DESC LIMIT 1
+
+- question: What is the highest total amount recorded for a single trip?
+  sql: SELECT max(total_amount) FROM trips
+
+- question: How many trips ended in the Bronx?
+  sql: |
+    SELECT count(*) FROM trips t
+    JOIN zones z ON t.dropoff_zone_id = z.zone_id
+    WHERE z.borough = 'Bronx'
+
+- question: What is the average fare for trips paid by cash?
+  sql: |
+    SELECT avg(t.fare_amount) FROM trips t
+    JOIN payment_types p ON t.payment_type_id = p.payment_type_id
+    WHERE p.payment_type = 'Cash'
+
+- question: Which dropoff zone received the most trips, among zones with at least 1000 dropoffs?
+  sql: |
+    SELECT z.zone_name, count(*) AS n FROM trips t
+    JOIN zones z ON t.dropoff_zone_id = z.zone_id
+    GROUP BY z.zone_name HAVING count(*) >= 1000 ORDER BY n DESC LIMIT 1
+
+- question: What is the average tip for trips longer than 5 miles?
+  sql: SELECT avg(tip_amount) FROM trips WHERE trip_distance_miles > 5
+
+- question: What is the total tolls collected for trips that started in Queens?
+  sql: |
+    SELECT sum(t.tolls_amount) FROM trips t
+    JOIN zones z ON t.pickup_zone_id = z.zone_id
+    WHERE z.borough = 'Queens'
+
+- question: What is the average total amount by pickup borough, for boroughs with over 2000 trips?
+  sql: |
+    SELECT z.borough, avg(t.total_amount) AS avg_total, count(*) AS n FROM trips t
+    JOIN zones z ON t.pickup_zone_id = z.zone_id
+    GROUP BY z.borough HAVING count(*) > 2000 ORDER BY avg_total DESC
+
+- question: Which pickup borough has the lowest average fare?
+  sql: |
+    SELECT z.borough, avg(t.fare_amount) AS avg_fare FROM trips t
+    JOIN zones z ON t.pickup_zone_id = z.zone_id
+    GROUP BY z.borough ORDER BY avg_fare ASC LIMIT 1
+
+- question: How many distinct payment types actually appear in the trips?
+  sql: SELECT count(DISTINCT payment_type_id) FROM trips
