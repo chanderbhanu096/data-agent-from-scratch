@@ -75,6 +75,8 @@ python scripts/run_evals.py --agent=05 --agent=06 --runs=3
 
 ## See it side by side — the [live demo](demo/)
 
+**▶ Try it now: [happy-mushroom-0c1ac670f.7.azurestaticapps.net](https://happy-mushroom-0c1ac670f.7.azurestaticapps.net)** — a hosted, clickable demo (no install, no key).
+
 Type one question and watch it run through **three chapters at once** — the plain loop, plan·verify,
 and schema retrieval — with the tokens, cost, and `grounded` receipt under each answer. Ask
 *"who is the highest-earning driver?"* and watch the plain loop invent a vendor while plan·verify

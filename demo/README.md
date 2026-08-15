@@ -1,7 +1,9 @@
 # Live demo — watch the agent get smarter, one chapter at a time
 
+**▶ Hosted: [happy-mushroom-0c1ac670f.7.azurestaticapps.net](https://happy-mushroom-0c1ac670f.7.azurestaticapps.net)** (Azure Static Web Apps, free tier — real captured runs, no key, no cost.)
+
 ```bash
-python demo/serve.py          # then open http://localhost:8000
+python demo/serve.py          # then open http://localhost:8000  (for live Cloud/Local modes)
 ```
 
 Type one question. It runs through **three real chapter agents side by side**, so you *see*
