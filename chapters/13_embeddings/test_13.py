@@ -30,7 +30,18 @@ CORPUS = [
 ]
 
 
-def test_default_embedder_is_lsa():
+def test_default_is_best_available(monkeypatch):
+    # No explicit choice → prefer the pre-trained model when it's installed,
+    # else fall back to the from-scratch lsa. Either way, never crash.
+    import importlib.util
+
+    monkeypatch.delenv("DATAAGENT_EMBEDDER", raising=False)
+    expected = "model" if importlib.util.find_spec("sentence_transformers") else "lsa"
+    assert get_embedder().name == expected
+
+
+def test_explicit_env_overrides_the_default(monkeypatch):
+    monkeypatch.setenv("DATAAGENT_EMBEDDER", "lsa")
     assert get_embedder().name == "lsa"
 
 

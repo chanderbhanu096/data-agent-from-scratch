@@ -24,9 +24,14 @@ and BM25 stays on the board as the baseline:
 
 | `DATAAGENT_EMBEDDER` | What draws the map | Offline? | Key? | Extra install |
 |---|---|:--:|:--:|---|
-| `lsa` **(default)** | **From scratch, numpy only.** TF-IDF + truncated SVD (classic Latent Semantic Analysis) | ✅ | ✅ none | none |
+| `lsa` | **From scratch, numpy only.** TF-IDF + truncated SVD (classic Latent Semantic Analysis) | ✅ | ✅ none | none |
 | `model` | A pre-trained sentence-transformer (`all-MiniLM-L6-v2`, ~90MB) | ✅ | ✅ none | `pip install -e ".[embeddings]"` |
 | `api` | The provider's embedding endpoint | ❌ | ❌ needs key | your provider SDK |
+
+**The default is "best available."** With no `DATAAGENT_EMBEDDER` set, the agent uses `model`
+when you've installed `[embeddings]` (best output out of the box) and falls back to `lsa` on a
+bare clone — so it's never a crash, and installing the extra is how you opt into the stronger
+one. Set `DATAAGENT_EMBEDDER` explicitly to pin a specific method for a fair comparison.
 
 ## The measurement
 

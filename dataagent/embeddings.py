@@ -14,15 +14,19 @@ learns which one it got:
            structure from how words co-occur *in the catalog itself*. No model,
            no key, no network. The honest limit: it only knows words that appear
            in your tables, so a synonym the catalog never uses is invisible to
-           it. This is the default.
+           it. The fallback default on a bare clone.
 
     model  A small pre-trained sentence-transformer (~90MB, runs offline). Real
            semantic quality — it was trained on the world, so it knows
            "expensive" ~ "amount" without either appearing together in your data.
-           Needs `pip install sentence-transformers`.
+           Needs `pip install -e ".[embeddings]"`, and once it's installed it
+           becomes the default (best output out of the box).
 
     api    The provider's embedding endpoint. Best quality, needs a key + network
            — the only option that breaks "runs offline".
+
+The default resolves to the best available: `model` when its dependency is
+installed, else `lsa`. An explicit DATAAGENT_EMBEDDER always overrides.
 
 Every embedder returns L2-normalised rows, so cosine similarity is a plain dot
 product. Which one is worth its cost is not asserted here — chapter 13 measures
@@ -198,9 +202,27 @@ class ApiEmbedder:
         return _l2_normalize(np.asarray([d.embedding for d in resp.data], dtype=np.float64))
 
 
+def _default_embedder_name() -> str:
+    """Best available by default, without ever crashing a fresh clone.
+
+    An explicit DATAAGENT_EMBEDDER always wins. Otherwise prefer the stronger
+    pre-trained `model` — but only when its dependency is actually installed;
+    installing the `[embeddings]` extra is how you opt in. A clone that hasn't
+    falls back to the from-scratch `lsa`, which needs nothing but numpy.
+    """
+    env = os.getenv("DATAAGENT_EMBEDDER")
+    if env:
+        return env.lower()
+    import importlib.util
+
+    if importlib.util.find_spec("sentence_transformers") is not None:
+        return "model"
+    return "lsa"
+
+
 def get_embedder(name: str | None = None, *, provider: str = "openai") -> Embedder:
-    """Pick an embedder by name (default: DATAAGENT_EMBEDDER, else 'lsa')."""
-    name = (name or os.getenv("DATAAGENT_EMBEDDER", "lsa")).lower()
+    """Pick an embedder by name (default: DATAAGENT_EMBEDDER, else best available)."""
+    name = (name or _default_embedder_name()).lower()
     if name == "lsa":
         return LsaEmbedder()
     if name == "model":
