@@ -18,6 +18,7 @@ real work lives in the chapters this imports.
 from __future__ import annotations
 
 import json
+import os
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -28,7 +29,10 @@ sys.path.insert(0, str(HERE.parent))
 from demo import spine
 
 INDEX = HERE / "index.html"
-PORT = 8000
+# Hosted platforms (Azure App Service, etc.) provide the port via $PORT and need
+# a bind on all interfaces; locally this is just localhost:8000.
+HOST = os.getenv("HOST", "0.0.0.0")
+PORT = int(os.getenv("PORT", "8000"))
 
 # Errors that mean "this live mode can't run" rather than "this question broke" —
 # for these we fall back to the recorded run instead of showing a red column.
@@ -51,6 +55,15 @@ _LIVE_OUTAGE_HINTS = (
 def _looks_like_outage(msg: str) -> bool:
     low = msg.lower()
     return any(h.lower() in low for h in _LIVE_OUTAGE_HINTS)
+
+
+def available_modes() -> dict:
+    """Which modes to advertise. A host with no Ollama can hide Local via
+    DEMO_DISABLE_LOCAL so the UI never offers a pill that only ever falls back."""
+    modes = {m: spine.mode_available(m) for m in ("cloud", "local", "replay")}
+    if os.getenv("DEMO_DISABLE_LOCAL"):
+        modes["local"] = False
+    return modes
 
 
 def _fallback(question: str, column_id: str, reason: str) -> dict:
@@ -102,7 +115,7 @@ class Handler(BaseHTTPRequestHandler):
         if self.path == "/api/config":
             self._send_json(
                 {
-                    "modes": {m: spine.mode_available(m) for m in ("cloud", "local", "replay")},
+                    "modes": available_modes(),
                     "questions": spine.demo_questions(),
                     "columns": [
                         {k: c[k] for k in ("id", "chapter", "title", "subtitle")}
@@ -132,11 +145,11 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main() -> None:
-    modes = {m: spine.mode_available(m) for m in ("cloud", "local", "replay")}
+    modes = available_modes()
     print("Data Agent — live demo")
     print(f"  modes available: {', '.join(m for m, ok in modes.items() if ok) or 'none (capture some runs first)'}")
     print(f"  open http://localhost:{PORT}")
-    ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()
+    ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
 
 
 if __name__ == "__main__":

@@ -1,10 +1,13 @@
 # Live demo — watch the agent get smarter, one chapter at a time
 
-**▶ Hosted: [happy-mushroom-0c1ac670f.7.azurestaticapps.net](https://happy-mushroom-0c1ac670f.7.azurestaticapps.net)** (Azure Static Web Apps, free tier — real captured runs, no key, no cost.)
+**▶ Live Demo: [data-agent-live-demo.azurewebsites.net](https://data-agent-live-demo.azurewebsites.net)** — hosted on Azure App Service, with **real live Cloud runs** (Local hidden; Replay always available as fallback).
 
 ```bash
-python demo/serve.py          # then open http://localhost:8000  (for live Cloud/Local modes)
+python demo/serve.py          # run it locally too — then open http://localhost:8000
 ```
+
+Deploy your own copy of the live backend with [`deploy_backend_azure.sh`](deploy_backend_azure.sh);
+the lighter static-replay-only option is [`deploy_azure.sh`](deploy_azure.sh).
 
 Type one question. It runs through **three real chapter agents side by side**, so you *see*
 what each capability adds:

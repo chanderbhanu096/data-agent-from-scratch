@@ -75,7 +75,7 @@ python scripts/run_evals.py --agent=05 --agent=06 --runs=3
 
 ## See it side by side — the [live demo](demo/)
 
-**▶ Try it now: [happy-mushroom-0c1ac670f.7.azurestaticapps.net](https://happy-mushroom-0c1ac670f.7.azurestaticapps.net)** — a hosted, clickable demo (no install, no key).
+**▶ Live Demo: [data-agent-live-demo.azurewebsites.net](https://data-agent-live-demo.azurewebsites.net)** — hosted on Azure with **real, live model calls**. Type a question and watch it run. No install.
 
 Type one question and watch it run through **three chapters at once** — the plain loop, plan·verify,
 and schema retrieval — with the tokens, cost, and `grounded` receipt under each answer. Ask
