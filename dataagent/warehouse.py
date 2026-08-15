@@ -162,12 +162,15 @@ def _value_hints(
     return f"{column} in ({rendered})"
 
 
-def schema_text() -> str:
+def schema_text(only: list[str] | None = None) -> str:
     """The whole schema as compact DDL, for stuffing into a prompt.
 
     This works because the warehouse has 3 tables. Chapter 08 is about what to
-    do when it has 300 and the schema no longer fits in the context window.
+    do when it has 300 and the schema no longer fits in the context window — and
+    it needs to render just the tables retrieval selected, so `only` restricts
+    the output to a set of table names while keeping the value-hint enrichment.
     """
+    keep = set(only) if only is not None else None
     con = connect(read_only=True)
     try:
         tables = [
@@ -176,6 +179,7 @@ def schema_text() -> str:
                 "SELECT table_name FROM information_schema.tables "
                 "WHERE table_schema = 'main' ORDER BY table_name"
             ).fetchall()
+            if keep is None or r[0] in keep
         ]
 
         blocks = []

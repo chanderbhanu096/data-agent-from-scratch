@@ -93,12 +93,17 @@ def execute(name: str, arguments: dict[str, Any]) -> str:
         return f"ERROR: bad arguments for {name}: {exc}"
 
 
-def build_system_prompt() -> str:
-    """Standing instructions plus the schema and the notes it can't infer."""
+def build_system_prompt(schema: str | None = None) -> str:
+    """Standing instructions plus the schema and the notes it can't infer.
+
+    `schema` overrides the full-warehouse dump — Chapter 08 passes the retrieved
+    subset, so the same prompt works whether the schema is three tables or three
+    hundred filtered down to the few that matter.
+    """
     return (
         "You are a data analyst for a NYC taxi warehouse. Answer questions using the "
         "tools. Work in steps: inspect what you need, run SQL, then answer.\n\n"
-        f"{schema_text()}\n\n"
+        f"{schema if schema is not None else schema_text()}\n\n"
         "Facts you cannot get from the schema:\n"
         "- trips.pickup_zone_id and trips.dropoff_zone_id join to zones.zone_id.\n"
         "- payment_type_id is meaningless alone; join payment_types for the name.\n"
