@@ -33,6 +33,7 @@ AGENTS = {
     "06": ("chapters/06_plan_and_verify/run.py", "plan, verify, repair"),
     "08": ("chapters/08_schema_retrieval/run.py", "retrieve, then answer"),
     "09": ("chapters/09_routing/run.py", "route cheap vs strong"),
+    "10": ("chapters/10_few_shot/run.py", "few-shot examples"),
 }
 
 
@@ -54,7 +55,7 @@ def run_one(module, key: str, question: str, settings) -> tuple[str, bool, float
     llm = LLM(settings)
     started = time.monotonic()
     try:
-        if key in ("06", "08", "09"):
+        if key in ("06", "08", "09", "10"):
             result = module.run_agent(llm, question, max_steps=settings.max_steps)
         else:
             result = module.run_agent(
