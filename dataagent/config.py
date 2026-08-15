@@ -47,9 +47,17 @@ def _model_for(provider: str) -> tuple[str, str | None]:
         return os.getenv("ANTHROPIC_MODEL", "claude-opus-5"), None
     if provider == "openai":
         return os.getenv("OPENAI_MODEL", "gpt-4o-mini"), None
+    if provider == "azure":
+        # For Azure, "model" is the *deployment name* you chose in the portal,
+        # and base_url is the resource endpoint. Name the deployment after the
+        # model (e.g. gpt-4o-mini) so the cost tracker can price it.
+        return (
+            os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-4o-mini"),
+            os.getenv("AZURE_OPENAI_ENDPOINT"),
+        )
     raise ValueError(
         f"Unknown provider {provider!r}. Set DATAAGENT_PROVIDER to one of: "
-        "ollama, anthropic, openai"
+        "ollama, anthropic, openai, azure"
     )
 
 

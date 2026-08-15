@@ -107,6 +107,25 @@ def price(model: str, usage_in: int, usage_out: int) -> float:
     return (usage_in / 1_000_000) * rate_in + (usage_out / 1_000_000) * rate_out
 
 
+def _azure_base_url(endpoint: str) -> str:
+    """Normalise a pasted Azure endpoint to the OpenAI-compatible v1 base URL.
+
+    The Foundry portal shows sample paths like '.../openai/v1/responses'; the SDK
+    wants the base '.../openai/v1'. This also accepts the bare resource host, so a
+    user can paste whatever the portal handed them and it still works.
+    """
+    url = (endpoint or "").strip().rstrip("/")
+    for op in ("/responses", "/chat/completions", "/completions", "/embeddings"):
+        if url.endswith(op):
+            url = url[: -len(op)].rstrip("/")
+            break
+    if url.endswith("/openai/v1"):
+        return url
+    if url.endswith("/openai"):
+        return url + "/v1"
+    return url + "/openai/v1"
+
+
 # ── Provider errors ───────────────────────────────────────────────────────────
 
 
@@ -175,7 +194,8 @@ class LLM:
         provider = self.settings.provider
         if provider == "anthropic":
             reply = self._anthropic(messages, system, tools, max_tokens)
-        elif provider == "openai":
+        elif provider in ("openai", "azure"):
+            # Azure OpenAI speaks the same wire format; only the client differs.
             reply = self._openai(messages, system, tools, max_tokens)
         elif provider == "ollama":
             reply = self._ollama(messages, system, tools, max_tokens)
@@ -232,6 +252,24 @@ class LLM:
 
     # ── OpenAI ────────────────────────────────────────────────────────────────
 
+    def _openai_client(self):
+        """The OpenAI SDK client, pointed at either OpenAI or Azure.
+
+        Azure AI Foundry now exposes an OpenAI-compatible surface at
+        `https://<resource>.services.ai.azure.com/openai/v1`, so we use the plain
+        OpenAI client with a base_url and the resource key — no api-version, no
+        AzureOpenAI class. In the request, `model` is the *deployment* name, which
+        `Settings.model` already carries for the azure provider. The rest of
+        _openai (tool schema, response parsing) is shared unchanged.
+        """
+        from openai import OpenAI
+
+        if self.settings.provider == "azure":
+            endpoint = self.settings.base_url or os.getenv("AZURE_OPENAI_ENDPOINT", "")
+            base_url = _azure_base_url(endpoint)
+            return OpenAI(base_url=base_url, api_key=os.getenv("AZURE_OPENAI_API_KEY"))
+        return OpenAI()
+
     def _openai(
         self,
         messages: list[Message],
@@ -239,16 +277,22 @@ class LLM:
         tools: list[Tool] | None,
         max_tokens: int,
     ) -> Reply:
-        from openai import OpenAI, OpenAIError
+        from openai import OpenAIError
 
-        client = OpenAI()
+        client = self._openai_client()
         msgs = list(messages)
         if system:
             msgs = [{"role": "system", "content": system}, *msgs]
 
+        # Azure's newer models on the v1 surface reject the legacy `max_tokens`
+        # and require `max_completion_tokens`. The public OpenAI API accepts both,
+        # but we only switch where we must, to leave the openai path untouched.
+        token_param = (
+            "max_completion_tokens" if self.settings.provider == "azure" else "max_tokens"
+        )
         kwargs: dict[str, Any] = {
             "model": self.model,
-            "max_tokens": max_tokens,
+            token_param: max_tokens,
             "messages": _to_openai(msgs),
         }
         if tools:
@@ -507,4 +551,16 @@ def missing_credentials(settings: Settings) -> str | None:
         return "ANTHROPIC_API_KEY is not set. Add it to .env, or set DATAAGENT_PROVIDER=ollama."
     if settings.provider == "openai" and not os.getenv("OPENAI_API_KEY"):
         return "OPENAI_API_KEY is not set. Add it to .env, or set DATAAGENT_PROVIDER=ollama."
+    if settings.provider == "azure":
+        missing = [
+            v
+            for v in ("AZURE_OPENAI_ENDPOINT", "AZURE_OPENAI_API_KEY")
+            if not os.getenv(v)
+        ]
+        if missing:
+            return (
+                f"{' and '.join(missing)} not set. Add AZURE_OPENAI_ENDPOINT, "
+                "AZURE_OPENAI_API_KEY, and AZURE_OPENAI_DEPLOYMENT to .env, or set "
+                "DATAAGENT_PROVIDER=ollama."
+            )
     return None
