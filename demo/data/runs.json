@@ -1,0 +1,627 @@
+{
+  "captured_with": "cloud",
+  "questions": [
+    "What is the average tip amount by payment type? Show the payment type name.",
+    "Which pickup zone has the most trips?",
+    "How many trips had a total amount over 100 dollars?",
+    "How many trips started in Manhattan?",
+    "Who is the highest-earning driver?"
+  ],
+  "columns": [
+    {
+      "id": "ch05",
+      "chapter": "05",
+      "title": "Plain loop",
+      "subtitle": "think \u2192 act \u2192 observe, no guardrails"
+    },
+    {
+      "id": "ch06",
+      "chapter": "06",
+      "title": "Plan \u00b7 verify \u00b7 repair",
+      "subtitle": "checks its own SQL, refuses the impossible"
+    },
+    {
+      "id": "ch08",
+      "chapter": "08",
+      "title": "Schema retrieval",
+      "subtitle": "finds the right table out of 253"
+    }
+  ],
+  "runs": {
+    "What is the average tip amount by payment type? Show the payment type name.": [
+      {
+        "id": "ch05",
+        "chapter": "05",
+        "title": "Plain loop",
+        "subtitle": "think \u2192 act \u2192 observe, no guardrails",
+        "answer": "Average tip amount by payment type: Cash $0.0009935, Credit card $4.508, Dispute $0.05539, and No charge $0.02414.",
+        "sql": "SELECT p.payment_type, COUNT(*) AS trip_count, AVG(t.tip_amount) AS avg_tip_amount FROM trips t JOIN payment_types p ON t.payment_type_id = p.payment_type_id GROUP BY p.payment_type ORDER BY p.payment_type",
+        "grounded": true,
+        "stop_reason": "answered",
+        "tokens_in": 1829,
+        "tokens_out": 107,
+        "cost_usd": 0.0,
+        "ms": 3185.6,
+        "steps": [
+          {
+            "n": 1,
+            "thinking": "",
+            "tools": [
+              "run_sql"
+            ],
+            "ms": 1975.8,
+            "input_tokens": 845,
+            "output_tokens": 64,
+            "cost_usd": 0.0
+          },
+          {
+            "n": 2,
+            "thinking": "Average tip amount by payment type: Cash $0.0009935, Credit card $4.508, Dispute $0.05539, and No charge $0.02414.",
+            "tools": [],
+            "ms": 1209.8,
+            "input_tokens": 984,
+            "output_tokens": 43,
+            "cost_usd": 0.0
+          }
+        ]
+      },
+      {
+        "id": "ch06",
+        "chapter": "06",
+        "title": "Plan \u00b7 verify \u00b7 repair",
+        "subtitle": "checks its own SQL, refuses the impossible",
+        "answer": "Average tip amount by payment type: Cash $0.0010, Credit card $4.508, Dispute $0.0554, and No charge $0.0241.",
+        "sql": "SELECT p.payment_type, AVG(t.tip_amount) AS avg_tip_amount, COUNT(*) AS trip_count FROM trips AS t JOIN payment_types AS p ON t.payment_type_id = p.payment_type_id GROUP BY p.payment_type ORDER BY p.payment_type",
+        "grounded": true,
+        "stop_reason": "answered",
+        "tokens_in": 2548,
+        "tokens_out": 176,
+        "cost_usd": 0.0,
+        "ms": 4188.6,
+        "steps": [
+          {
+            "n": 1,
+            "thinking": "",
+            "tools": [
+              "run_sql"
+            ],
+            "ms": 2932.0,
+            "input_tokens": 1634,
+            "output_tokens": 134,
+            "cost_usd": 0.0
+          },
+          {
+            "n": 2,
+            "thinking": "Average tip amount by payment type: Cash $0.0010, Credit card $4.508, Dispute $0.0554, and No charge $0.0241.",
+            "tools": [],
+            "ms": 1256.6,
+            "input_tokens": 914,
+            "output_tokens": 42,
+            "cost_usd": 0.0
+          }
+        ]
+      },
+      {
+        "id": "ch08",
+        "chapter": "08",
+        "title": "Schema retrieval",
+        "subtitle": "finds the right table out of 253",
+        "answer": "Average tip amount by payment type: Cash $0.0009935, Credit card $4.508, Dispute $0.05539, and No charge $0.02414.",
+        "sql": "SELECT p.payment_type, COUNT(*) AS trip_count, AVG(t.tip_amount) AS avg_tip_amount FROM trips t JOIN payment_types p ON t.payment_type_id = p.payment_type_id GROUP BY p.payment_type ORDER BY p.payment_type",
+        "grounded": true,
+        "stop_reason": "answered",
+        "tokens_in": 2051,
+        "tokens_out": 107,
+        "cost_usd": 0.0,
+        "ms": 2496.4,
+        "steps": [
+          {
+            "n": 1,
+            "thinking": "",
+            "tools": [
+              "run_sql"
+            ],
+            "ms": 1344.7,
+            "input_tokens": 956,
+            "output_tokens": 64,
+            "cost_usd": 0.0
+          },
+          {
+            "n": 2,
+            "thinking": "Average tip amount by payment type: Cash $0.0009935, Credit card $4.508, Dispute $0.05539, and No charge $0.02414.",
+            "tools": [],
+            "ms": 1151.7,
+            "input_tokens": 1095,
+            "output_tokens": 43,
+            "cost_usd": 0.0
+          }
+        ]
+      }
+    ],
+    "Which pickup zone has the most trips?": [
+      {
+        "id": "ch05",
+        "chapter": "05",
+        "title": "Plain loop",
+        "subtitle": "think \u2192 act \u2192 observe, no guardrails",
+        "answer": "JFK Airport has the most pickup trips, with 22,118 trips.",
+        "sql": "SELECT z.zone_name, COUNT(*) AS trip_count FROM trips t JOIN zones z ON t.pickup_zone_id = z.zone_id GROUP BY z.zone_id, z.zone_name ORDER BY trip_count DESC LIMIT 1",
+        "grounded": true,
+        "stop_reason": "answered",
+        "tokens_in": 1760,
+        "tokens_out": 80,
+        "cost_usd": 0.0,
+        "ms": 2497.2,
+        "steps": [
+          {
+            "n": 1,
+            "thinking": "",
+            "tools": [
+              "run_sql"
+            ],
+            "ms": 1277.7,
+            "input_tokens": 837,
+            "output_tokens": 60,
+            "cost_usd": 0.0
+          },
+          {
+            "n": 2,
+            "thinking": "JFK Airport has the most pickup trips, with 22,118 trips.",
+            "tools": [],
+            "ms": 1219.5,
+            "input_tokens": 923,
+            "output_tokens": 20,
+            "cost_usd": 0.0
+          }
+        ]
+      },
+      {
+        "id": "ch06",
+        "chapter": "06",
+        "title": "Plan \u00b7 verify \u00b7 repair",
+        "subtitle": "checks its own SQL, refuses the impossible",
+        "answer": "JFK Airport had the most trips, with 22,118 pickups.",
+        "sql": "SELECT z.zone_name, COUNT(*) AS trip_count FROM trips t LEFT JOIN zones z ON t.pickup_zone_id = z.zone_id GROUP BY t.pickup_zone_id, z.zone_name ORDER BY trip_count DESC LIMIT 1",
+        "grounded": true,
+        "stop_reason": "answered",
+        "tokens_in": 4670,
+        "tokens_out": 248,
+        "cost_usd": 0.0,
+        "ms": 7872.2,
+        "steps": [
+          {
+            "n": 1,
+            "thinking": "",
+            "tools": [
+              "run_sql"
+            ],
+            "ms": 2360.9,
+            "input_tokens": 1629,
+            "output_tokens": 97,
+            "cost_usd": 0.0
+          },
+          {
+            "n": 2,
+            "thinking": "",
+            "tools": [
+              "run_sql"
+            ],
+            "ms": 2994.8,
+            "input_tokens": 890,
+            "output_tokens": 69,
+            "cost_usd": 0.0
+          },
+          {
+            "n": 3,
+            "thinking": "",
+            "tools": [
+              "run_sql"
+            ],
+            "ms": 1421.7,
+            "input_tokens": 1031,
+            "output_tokens": 63,
+            "cost_usd": 0.0
+          },
+          {
+            "n": 4,
+            "thinking": "JFK Airport had the most trips, with 22,118 pickups.",
+            "tools": [],
+            "ms": 1094.8,
+            "input_tokens": 1120,
+            "output_tokens": 19,
+            "cost_usd": 0.0
+          }
+        ]
+      },
+      {
+        "id": "ch08",
+        "chapter": "08",
+        "title": "Schema retrieval",
+        "subtitle": "finds the right table out of 253",
+        "answer": "JFK Airport has the most pickup trips, with 22,118 trips.",
+        "sql": "SELECT z.zone_name, COUNT(*) AS trip_count FROM trips t JOIN zones z ON t.pickup_zone_id = z.zone_id GROUP BY z.zone_id, z.zone_name ORDER BY trip_count DESC LIMIT 1",
+        "grounded": true,
+        "stop_reason": "answered",
+        "tokens_in": 1598,
+        "tokens_out": 80,
+        "cost_usd": 0.0,
+        "ms": 2587.5,
+        "steps": [
+          {
+            "n": 1,
+            "thinking": "",
+            "tools": [
+              "run_sql"
+            ],
+            "ms": 1364.0,
+            "input_tokens": 756,
+            "output_tokens": 60,
+            "cost_usd": 0.0
+          },
+          {
+            "n": 2,
+            "thinking": "JFK Airport has the most pickup trips, with 22,118 trips.",
+            "tools": [],
+            "ms": 1223.5,
+            "input_tokens": 842,
+            "output_tokens": 20,
+            "cost_usd": 0.0
+          }
+        ]
+      }
+    ],
+    "How many trips had a total amount over 100 dollars?": [
+      {
+        "id": "ch05",
+        "chapter": "05",
+        "title": "Plain loop",
+        "subtitle": "think \u2192 act \u2192 observe, no guardrails",
+        "answer": "5,979 trips had a total amount over $100.",
+        "sql": "SELECT COUNT(*) AS trips_over_100 FROM trips WHERE total_amount > 100",
+        "grounded": true,
+        "stop_reason": "answered",
+        "tokens_in": 1734,
+        "tokens_out": 49,
+        "cost_usd": 0.0,
+        "ms": 2540.7,
+        "steps": [
+          {
+            "n": 1,
+            "thinking": "",
+            "tools": [
+              "run_sql"
+            ],
+            "ms": 1262.8,
+            "input_tokens": 841,
+            "output_tokens": 33,
+            "cost_usd": 0.0
+          },
+          {
+            "n": 2,
+            "thinking": "5,979 trips had a total amount over $100.",
+            "tools": [],
+            "ms": 1277.9,
+            "input_tokens": 893,
+            "output_tokens": 16,
+            "cost_usd": 0.0
+          }
+        ]
+      },
+      {
+        "id": "ch06",
+        "chapter": "06",
+        "title": "Plan \u00b7 verify \u00b7 repair",
+        "subtitle": "checks its own SQL, refuses the impossible",
+        "answer": "5,979 trips had a total amount over $100.",
+        "sql": "SELECT COUNT(*) AS trip_count FROM trips WHERE total_amount > 100",
+        "grounded": true,
+        "stop_reason": "answered",
+        "tokens_in": 2450,
+        "tokens_out": 107,
+        "cost_usd": 0.0,
+        "ms": 3914.9,
+        "steps": [
+          {
+            "n": 1,
+            "thinking": "",
+            "tools": [
+              "run_sql"
+            ],
+            "ms": 2687.5,
+            "input_tokens": 1630,
+            "output_tokens": 91,
+            "cost_usd": 0.0
+          },
+          {
+            "n": 2,
+            "thinking": "5,979 trips had a total amount over $100.",
+            "tools": [],
+            "ms": 1227.4,
+            "input_tokens": 820,
+            "output_tokens": 16,
+            "cost_usd": 0.0
+          }
+        ]
+      },
+      {
+        "id": "ch08",
+        "chapter": "08",
+        "title": "Schema retrieval",
+        "subtitle": "finds the right table out of 253",
+        "answer": "5,979 trips had a total amount over $100.",
+        "sql": "SELECT COUNT(*) AS trip_count FROM trips WHERE total_amount > 100",
+        "grounded": true,
+        "stop_reason": "answered",
+        "tokens_in": 1769,
+        "tokens_out": 47,
+        "cost_usd": 0.0,
+        "ms": 2896.6,
+        "steps": [
+          {
+            "n": 1,
+            "thinking": "",
+            "tools": [
+              "run_sql"
+            ],
+            "ms": 1460.0,
+            "input_tokens": 861,
+            "output_tokens": 31,
+            "cost_usd": 0.0
+          },
+          {
+            "n": 2,
+            "thinking": "5,979 trips had a total amount over $100.",
+            "tools": [],
+            "ms": 1436.6,
+            "input_tokens": 908,
+            "output_tokens": 16,
+            "cost_usd": 0.0
+          }
+        ]
+      }
+    ],
+    "How many trips started in Manhattan?": [
+      {
+        "id": "ch05",
+        "chapter": "05",
+        "title": "Plain loop",
+        "subtitle": "think \u2192 act \u2192 observe, no guardrails",
+        "answer": "257,614 trips started in Manhattan.",
+        "sql": "SELECT COUNT(*) AS trip_count FROM trips t JOIN zones z ON t.pickup_zone_id = z.zone_id WHERE z.borough = 'Manhattan'",
+        "grounded": true,
+        "stop_reason": "answered",
+        "tokens_in": 2698,
+        "tokens_out": 82,
+        "cost_usd": 0.0,
+        "ms": 3181.1,
+        "steps": [
+          {
+            "n": 1,
+            "thinking": "",
+            "tools": [
+              "sample_column"
+            ],
+            "ms": 1100.2,
+            "input_tokens": 836,
+            "output_tokens": 22,
+            "cost_usd": 0.0
+          },
+          {
+            "n": 2,
+            "thinking": "",
+            "tools": [
+              "run_sql"
+            ],
+            "ms": 1183.0,
+            "input_tokens": 899,
+            "output_tokens": 48,
+            "cost_usd": 0.0
+          },
+          {
+            "n": 3,
+            "thinking": "257,614 trips started in Manhattan.",
+            "tools": [],
+            "ms": 897.9,
+            "input_tokens": 963,
+            "output_tokens": 12,
+            "cost_usd": 0.0
+          }
+        ]
+      },
+      {
+        "id": "ch06",
+        "chapter": "06",
+        "title": "Plan \u00b7 verify \u00b7 repair",
+        "subtitle": "checks its own SQL, refuses the impossible",
+        "answer": "257,614 trips started in Manhattan in January 2024.",
+        "sql": "SELECT COUNT(*) AS trip_count FROM trips t JOIN zones z ON t.pickup_zone_id = z.zone_id WHERE z.borough = 'Manhattan'",
+        "grounded": true,
+        "stop_reason": "answered",
+        "tokens_in": 3334,
+        "tokens_out": 146,
+        "cost_usd": 0.0,
+        "ms": 4889.5,
+        "steps": [
+          {
+            "n": 1,
+            "thinking": "",
+            "tools": [
+              "sample_column"
+            ],
+            "ms": 2648.7,
+            "input_tokens": 1616,
+            "output_tokens": 81,
+            "cost_usd": 0.0
+          },
+          {
+            "n": 2,
+            "thinking": "",
+            "tools": [
+              "run_sql"
+            ],
+            "ms": 1122.2,
+            "input_tokens": 827,
+            "output_tokens": 48,
+            "cost_usd": 0.0
+          },
+          {
+            "n": 3,
+            "thinking": "257,614 trips started in Manhattan in January 2024.",
+            "tools": [],
+            "ms": 1118.6,
+            "input_tokens": 891,
+            "output_tokens": 17,
+            "cost_usd": 0.0
+          }
+        ]
+      },
+      {
+        "id": "ch08",
+        "chapter": "08",
+        "title": "Schema retrieval",
+        "subtitle": "finds the right table out of 253",
+        "answer": "257,614 trips started in Manhattan.",
+        "sql": "SELECT COUNT(*) AS trip_count FROM trips t JOIN zones z ON t.pickup_zone_id = z.zone_id WHERE z.borough = 'Manhattan'",
+        "grounded": true,
+        "stop_reason": "answered",
+        "tokens_in": 2182,
+        "tokens_out": 82,
+        "cost_usd": 0.0,
+        "ms": 3385.0,
+        "steps": [
+          {
+            "n": 1,
+            "thinking": "",
+            "tools": [
+              "sample_column"
+            ],
+            "ms": 1011.8,
+            "input_tokens": 664,
+            "output_tokens": 22,
+            "cost_usd": 0.0
+          },
+          {
+            "n": 2,
+            "thinking": "",
+            "tools": [
+              "run_sql"
+            ],
+            "ms": 1262.0,
+            "input_tokens": 727,
+            "output_tokens": 48,
+            "cost_usd": 0.0
+          },
+          {
+            "n": 3,
+            "thinking": "257,614 trips started in Manhattan.",
+            "tools": [],
+            "ms": 1111.2,
+            "input_tokens": 791,
+            "output_tokens": 12,
+            "cost_usd": 0.0
+          }
+        ]
+      }
+    ],
+    "Who is the highest-earning driver?": [
+      {
+        "id": "ch05",
+        "chapter": "05",
+        "title": "Plain loop",
+        "subtitle": "think \u2192 act \u2192 observe, no guardrails",
+        "answer": "The data doesn\u2019t identify individual drivers, only vendors. Vendor 2 has the highest total earnings at $6.722 million across 227,949 trips.",
+        "sql": "SELECT vendor_id, SUM(total_amount) AS total_earnings, COUNT(*) AS trip_count FROM trips GROUP BY vendor_id ORDER BY total_earnings DESC",
+        "grounded": true,
+        "stop_reason": "answered",
+        "tokens_in": 1776,
+        "tokens_out": 85,
+        "cost_usd": 0.0,
+        "ms": 2555.4,
+        "steps": [
+          {
+            "n": 1,
+            "thinking": "",
+            "tools": [
+              "run_sql"
+            ],
+            "ms": 1450.4,
+            "input_tokens": 837,
+            "output_tokens": 49,
+            "cost_usd": 0.0
+          },
+          {
+            "n": 2,
+            "thinking": "The data doesn\u2019t identify individual drivers, only vendors. Vendor 2 has the highest total earnings at $6.722 million across 227,949 trips.",
+            "tools": [],
+            "ms": 1105.0,
+            "input_tokens": 939,
+            "output_tokens": 36,
+            "cost_usd": 0.0
+          }
+        ]
+      },
+      {
+        "id": "ch06",
+        "chapter": "06",
+        "title": "Plan \u00b7 verify \u00b7 repair",
+        "subtitle": "checks its own SQL, refuses the impossible",
+        "answer": "That can't be answered from this warehouse. The warehouse does not contain driver identities or driver earnings, so it cannot determine the highest-earning driver.",
+        "sql": null,
+        "grounded": true,
+        "stop_reason": "declined \u2014 warehouse cannot answer",
+        "tokens_in": 853,
+        "tokens_out": 60,
+        "cost_usd": 0.0,
+        "ms": 0,
+        "steps": []
+      },
+      {
+        "id": "ch08",
+        "chapter": "08",
+        "title": "Schema retrieval",
+        "subtitle": "finds the right table out of 253",
+        "answer": "The data doesn\u2019t include a driver identifier, so the highest-earning driver can\u2019t be determined from these 300,000 trips.",
+        "sql": "SELECT COUNT(*) AS trip_count, SUM(total_amount) AS total_earnings FROM trips",
+        "grounded": true,
+        "stop_reason": "answered",
+        "tokens_in": 1964,
+        "tokens_out": 90,
+        "cost_usd": 0.0,
+        "ms": 3691.4,
+        "steps": [
+          {
+            "n": 1,
+            "thinking": "",
+            "tools": [
+              "run_sql"
+            ],
+            "ms": 1194.8,
+            "input_tokens": 524,
+            "output_tokens": 24,
+            "cost_usd": 0.0
+          },
+          {
+            "n": 2,
+            "thinking": "",
+            "tools": [
+              "run_sql"
+            ],
+            "ms": 1106.2,
+            "input_tokens": 687,
+            "output_tokens": 35,
+            "cost_usd": 0.0
+          },
+          {
+            "n": 3,
+            "thinking": "The data doesn\u2019t include a driver identifier, so the highest-earning driver can\u2019t be determined from these 300,000 trips.",
+            "tools": [],
+            "ms": 1390.4,
+            "input_tokens": 753,
+            "output_tokens": 31,
+            "cost_usd": 0.0
+          }
+        ]
+      }
+    ]
+  }
+}
