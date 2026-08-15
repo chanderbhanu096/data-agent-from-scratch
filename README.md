@@ -99,22 +99,35 @@ ollama pull qwen2.5:3b                # 1.9 GB, free, runs offline
 python chapters/01_first_call/run.py
 ```
 
-**No API key needed.** The default provider is [Ollama](https://ollama.com) — free, local,
-offline. Prefer a hosted model? Set `DATAAGENT_PROVIDER=anthropic`, `openai`, or `azure` in
-`.env`. The same code runs on all four; swapping is a one-line change, which is the point of
-Chapter 01.
+**No API key needed** to start — the default provider is [Ollama](https://ollama.com), free
+and offline. But everything is provider-agnostic: **pick whichever model you want.**
 
-For **Azure OpenAI** (Azure AI Foundry), set:
+## Run it on any model
+
+One file — [`dataagent/llm.py`](dataagent/llm.py) — is the only place that knows a provider
+exists. Set `DATAAGENT_PROVIDER` in `.env` and fill in the placeholders for your choice:
+
+| Provider | `.env` | You supply |
+|----------|--------|------------|
+| **Ollama** (local, free) | `DATAAGENT_PROVIDER=ollama`<br>`OLLAMA_MODEL=<model>` | nothing — just `ollama pull <model>` |
+| **Anthropic** | `DATAAGENT_PROVIDER=anthropic`<br>`ANTHROPIC_MODEL=<model>` | `ANTHROPIC_API_KEY=<key>` |
+| **OpenAI** | `DATAAGENT_PROVIDER=openai`<br>`OPENAI_MODEL=<model>` | `OPENAI_API_KEY=<key>` |
+| **Azure OpenAI** | `DATAAGENT_PROVIDER=azure`<br>`AZURE_OPENAI_DEPLOYMENT=<deployment>` | `AZURE_OPENAI_ENDPOINT=<endpoint>`<br>`AZURE_OPENAI_API_KEY=<key>` |
+
+For **Azure OpenAI** (Azure AI Foundry), the endpoint is the OpenAI-compatible `/openai/v1`
+surface and the model is your *deployment* name — paste the endpoint straight from **Keys and
+Endpoint** and it's normalized for you:
 
 ```bash
 DATAAGENT_PROVIDER=azure
 AZURE_OPENAI_ENDPOINT=https://<your-resource>.services.ai.azure.com/openai/v1
-AZURE_OPENAI_API_KEY=<key from Keys and Endpoint>
-AZURE_OPENAI_DEPLOYMENT=<your deployment name>
+AZURE_OPENAI_API_KEY=<key>
+AZURE_OPENAI_DEPLOYMENT=<your-deployment-name>
 ```
 
-The gateway talks to the OpenAI-compatible `/openai/v1` surface, so `model` is your
-*deployment* name and the endpoint you paste from the portal is normalized automatically.
+> **The benchmark numbers in this repo are measured on Azure OpenAI** (`gpt-chat-latest`) as
+> the reference model. Swap in your own and re-run `scripts/run_evals.py` — the eval harness
+> doesn't care which provider produced the answer.
 
 ## The warehouse you'll be querying
 
