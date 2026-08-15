@@ -9,3 +9,6 @@ data/
 .pytest_cache/
 .ruff_cache/
 .DS_Store
+
+# Local implementation tracker — not part of the public history
+docs/session-log.md
