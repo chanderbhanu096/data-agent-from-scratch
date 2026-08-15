@@ -53,6 +53,26 @@ screenshot of someone else's demo.
 not because nobody tips in cash, but because cash tips never get recorded. The agent
 surfaced it; noticing what it means is still your job.)*
 
+## Does it actually work? Measured, not claimed.
+
+The agent is scored against a golden set where every question carries the SQL that computes
+its own answer, so the truth is recomputed from the warehouse each run — no vibes, no
+self-grading. The headline result is the payoff of Chapter 06: *checking the query in code*
+instead of *asking the model nicely* to get it right.
+
+| Model | plain loop | + plan · verify · repair | Δ | traps hit |
+|-------|-----------:|-------------------------:|:--|:--|
+| **`qwen2.5:3b`** — free, runs on a laptop | 51% | **69%** | **+18%** | 3 → **0** |
+| **frontier model** (via Azure) | 94% | **100%** | **+6%** | 0 → 0 |
+
+Verification helps the *weak* model three times more than the strong one, and drives
+plausible-wrong "trap" answers to zero on both — because the guardrails exist for exactly the
+model that needs them. Reproduce it yourself:
+
+```bash
+python scripts/run_evals.py --agent=05 --agent=06 --runs=3
+```
+
 ## Why this exists
 
 There are excellent courses on AI agents. Almost all of them teach you to build a
