@@ -8,6 +8,7 @@ copying: one narrow door, not rules scattered across the codebase.
 from __future__ import annotations
 
 import re
+import threading
 from dataclasses import dataclass
 
 import duckdb
@@ -17,6 +18,10 @@ from dataagent.config import WAREHOUSE_PATH
 
 class UnsafeSQL(Exception):
     """Raised when a query is rejected before it ever reaches the database."""
+
+
+class QueryTimeout(Exception):
+    """Raised when a query runs past its time budget and is interrupted."""
 
 
 # Anything that writes, drops, or reaches outside the database. DuckDB opens
@@ -90,10 +95,21 @@ def assert_safe(sql: str) -> None:
         raise UnsafeSQL(f"{match.group(0).upper()} is not allowed — this agent is read-only.")
 
 
-def run_sql(sql: str, row_limit: int = 1000) -> QueryResult:
-    """Validate, cap, execute. The only path from agent to database."""
+def run_sql(
+    sql: str, row_limit: int = 1000, timeout_s: float | None = None
+) -> QueryResult:
+    """Validate, cap, execute. The only path from agent to database.
+
+    `timeout_s` bounds *compute*, not just output. The row limit caps how many
+    rows we fetch, but an aggregate over a cross join does all the work before it
+    returns a single number — the row cap never sees it. A watchdog thread asks
+    DuckDB to interrupt the query once the budget is spent.
+    """
     assert_safe(sql)
     con = connect(read_only=True)
+    watchdog = threading.Timer(timeout_s, con.interrupt) if timeout_s else None
+    if watchdog is not None:
+        watchdog.start()
     try:
         # Fetch one extra row so we can tell "exactly at the limit" from
         # "actually truncated" — the model should know which it got.
@@ -102,7 +118,13 @@ def run_sql(sql: str, row_limit: int = 1000) -> QueryResult:
         columns = [d[0] for d in cur.description]
         truncated = len(rows) > row_limit
         return QueryResult(columns, rows[:row_limit], truncated)
+    except duckdb.InterruptException:
+        raise QueryTimeout(
+            f"Query exceeded its {timeout_s:g}s budget and was cancelled."
+        ) from None
     finally:
+        if watchdog is not None:
+            watchdog.cancel()
         con.close()
 
 
