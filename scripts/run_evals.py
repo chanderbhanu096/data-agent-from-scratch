@@ -31,6 +31,7 @@ console = Console()
 AGENTS = {
     "05": ("chapters/05_agent_loop/run.py", "the plain loop"),
     "06": ("chapters/06_plan_and_verify/run.py", "plan, verify, repair"),
+    "08": ("chapters/08_schema_retrieval/run.py", "retrieve, then answer"),
 }
 
 
@@ -52,7 +53,7 @@ def run_one(module, key: str, question: str, settings) -> tuple[str, bool, float
     llm = LLM(settings)
     started = time.monotonic()
     try:
-        if key == "06":
+        if key in ("06", "08"):
             result = module.run_agent(llm, question, max_steps=settings.max_steps)
         else:
             result = module.run_agent(
