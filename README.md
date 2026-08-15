@@ -73,6 +73,21 @@ model that needs them. Reproduce it yourself:
 python scripts/run_evals.py --agent=05 --agent=06 --runs=3
 ```
 
+## See it side by side — the [live demo](demo/)
+
+Type one question and watch it run through **three chapters at once** — the plain loop, plan·verify,
+and schema retrieval — with the tokens, cost, and `grounded` receipt under each answer. Ask
+*"who is the highest-earning driver?"* and watch the plain loop invent a vendor while plan·verify
+**refuses**. Real runs, not a mock-up.
+
+```bash
+python demo/serve.py          # then open http://localhost:8000
+```
+
+Three modes — **Cloud** (live frontier model), **Local** (your Ollama), **Replay** (captured real
+runs, no key). If the live model is unavailable, it falls back to the recorded run and says so — so
+the page always works, even hosted as a static site. Details in [`demo/`](demo/).
+
 ## Why this exists
 
 There are excellent courses on AI agents. Almost all of them teach you to build a

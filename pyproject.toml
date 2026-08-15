@@ -29,7 +29,7 @@ build-backend = "hatchling.build"
 packages = ["dataagent"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests", "chapters"]
+testpaths = ["tests", "chapters", "demo"]
 python_files = ["test_*.py"]
 
 [tool.ruff]
