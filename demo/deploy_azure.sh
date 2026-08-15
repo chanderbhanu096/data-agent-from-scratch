@@ -11,7 +11,7 @@
 set -euo pipefail
 
 RG=${RG:-data-agent-demo-rg}
-LOC=${LOC:-westeurope}          # a Static Web Apps Free region near you
+LOC=${LOC:-eastus2}            # a Static Web Apps Free region accepting new apps
 APP=${APP:-data-agent-live-demo}
 
 echo "→ resource group: $RG ($LOC)"
