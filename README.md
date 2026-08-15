@@ -80,9 +80,21 @@ python chapters/01_first_call/run.py
 ```
 
 **No API key needed.** The default provider is [Ollama](https://ollama.com) — free, local,
-offline. Prefer a hosted model? Set `DATAAGENT_PROVIDER=anthropic` (or `openai`) in `.env`.
-The same code runs on all three; swapping is a one-line change, which is the point of
+offline. Prefer a hosted model? Set `DATAAGENT_PROVIDER=anthropic`, `openai`, or `azure` in
+`.env`. The same code runs on all four; swapping is a one-line change, which is the point of
 Chapter 01.
+
+For **Azure OpenAI** (Azure AI Foundry), set:
+
+```bash
+DATAAGENT_PROVIDER=azure
+AZURE_OPENAI_ENDPOINT=https://<your-resource>.services.ai.azure.com/openai/v1
+AZURE_OPENAI_API_KEY=<key from Keys and Endpoint>
+AZURE_OPENAI_DEPLOYMENT=<your deployment name>
+```
+
+The gateway talks to the OpenAI-compatible `/openai/v1` surface, so `model` is your
+*deployment* name and the endpoint you paste from the portal is normalized automatically.
 
 ## The warehouse you'll be querying
 
