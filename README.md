@@ -162,10 +162,11 @@ sitting — that's the constraint each chapter is written under.
 <tr><td><b>Tier 3</b></td><td><b>Interaction &amp; production</b></td></tr>
 <tr><td>11</td><td>Conversation · multi-turn follow-ups that carry the thread ✅</td></tr>
 <tr><td>12</td><td>Tracing · every step, token, and dollar on the record — "it works" you can see ✅</td></tr>
-<tr><td>13+</td><td>Embeddings as the retrieval upgrade · an MCP server · multi-agent · deploy</td></tr>
+<tr><td>13</td><td>Embeddings · retrieve by meaning; from-scratch LSA vs a pre-trained model, measured (62%→92%) ✅</td></tr>
+<tr><td>14+</td><td>An MCP server · multi-agent · deploy</td></tr>
 </table>
 
-Chapters 01–12 are here and runnable now (✅). Every ✅ chapter ships with a test and a
+Chapters 01–13 are here and runnable now (✅). Every ✅ chapter ships with a test and a
 measured result. Later chapters land as they're written — watch the repo.
 
 ## The one idea

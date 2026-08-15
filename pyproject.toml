@@ -9,13 +9,17 @@ dependencies = [
     "python-dotenv>=1.0",
     "rich>=13.0",
     "httpx>=0.27",
+    "numpy>=1.26",
 ]
 
 [project.optional-dependencies]
 anthropic = ["anthropic>=0.40"]
 openai = ["openai>=1.50"]
+# Chapter 13's `model` embedder — a pre-trained sentence-transformer (pulls in
+# torch). The `lsa` and `api` embedders don't need it.
+embeddings = ["sentence-transformers>=2.2"]
 dev = ["pytest>=8.0", "ruff>=0.6"]
-all = ["anthropic>=0.40", "openai>=1.50", "pytest>=8.0", "ruff>=0.6"]
+all = ["anthropic>=0.40", "openai>=1.50", "sentence-transformers>=2.2", "pytest>=8.0", "ruff>=0.6"]
 
 [build-system]
 requires = ["hatchling"]
