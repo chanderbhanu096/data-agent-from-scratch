@@ -12,3 +12,4 @@ data/
 
 # Local implementation tracker — not part of the public history
 docs/session-log.md
+chapters/12_tracing/traces.jsonl

@@ -161,10 +161,11 @@ sitting — that's the constraint each chapter is written under.
 <tr><td>10</td><td>Few-shot · retrieved worked examples — and the honest measurement of when they hurt ✅</td></tr>
 <tr><td><b>Tier 3</b></td><td><b>Interaction &amp; production</b></td></tr>
 <tr><td>11</td><td>Conversation · multi-turn follow-ups that carry the thread ✅</td></tr>
-<tr><td>12+</td><td>Tracing · embeddings as the retrieval upgrade · an MCP server · multi-agent · deploy</td></tr>
+<tr><td>12</td><td>Tracing · every step, token, and dollar on the record — "it works" you can see ✅</td></tr>
+<tr><td>13+</td><td>Embeddings as the retrieval upgrade · an MCP server · multi-agent · deploy</td></tr>
 </table>
 
-Chapters 01–11 are here and runnable now (✅). Every ✅ chapter ships with a test and a
+Chapters 01–12 are here and runnable now (✅). Every ✅ chapter ships with a test and a
 measured result. Later chapters land as they're written — watch the repo.
 
 ## The one idea
