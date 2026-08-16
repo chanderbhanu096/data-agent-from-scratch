@@ -2,270 +2,409 @@
 
 # Data Agent From Scratch
 
-### Stop writing SQL. Build the thing that writes it for you.
+### Build a text-to-SQL agent from the loop up.
 
-**Ask in plain English. The agent writes the SQL, checks it, runs it, and answers.**
-You don't need to know SQL to use it — you need to know how to *build* it. That's this repo.
+Ask a question in plain English. The agent finds the relevant schema, plans a query, writes SQL, checks it, runs it against a real warehouse, and returns an answer.
 
-*No frameworks. No black boxes. No hardcoded demo.*
+**No agent framework. No hidden orchestration layer. No mocked database.**
 
-[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](https://python.org)
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![DuckDB](https://img.shields.io/badge/DuckDB-FFF000?logo=duckdb&logoColor=black)](https://duckdb.org/)
+[![CI](https://github.com/chanderbhanu096/data-agent-from-scratch/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Runs offline](https://img.shields.io/badge/Runs%20offline-Ollama%20%7C%20no%20API%20key-success)](#start-in-60-seconds)
+
+### [Open the live demo](https://data-agent-live-demo.azurewebsites.net)
 
 </div>
 
 ---
 
-> **Everything here runs.** Every chapter is executable code with a test. There is no
-> demo mode, no canned response, no "imagine this returns…". If it can't run for real,
-> it isn't in this repo.
+## What this project is
 
-## What that looks like
+Data Agent From Scratch is an executable study of how a reliable data agent is built.
 
-You type this:
+The repository starts with a normal LLM request and adds one capability at a time: structured output, schema grounding, tool calling, an agent loop, verification, SQL guardrails, retrieval, routing, memory, tracing, and embeddings.
 
-> *"What is the average tip amount by payment type? Show the payment type name."*
+The shared implementation lives in [`dataagent/`](dataagent/). Each stage remains runnable and inspectable in [`chapters/`](chapters/), so the architecture evolves without hiding the previous version behind a framework.
 
-It writes this, by itself, from nothing but the schema:
+Text-to-SQL is useful here because most behavior is objectively testable. A generated query either produces the expected result from the warehouse or it does not.
 
-```sql
-SELECT pt.payment_type, AVG(t.tip_amount) AS avg_tip_amount
-FROM trips t
-JOIN payment_types pt ON t.payment_type_id = pt.payment_type_id
-GROUP BY pt.payment_type
-LIMIT 100
-```
+### At a glance
 
-And you get this:
-
-| payment_type | avg_tip_amount |
+| Area | What is implemented |
 |---|---|
-| Credit card | 4.508 |
-| Dispute | 0.055 |
-| No charge | 0.024 |
-| Cash | 0.0009935 |
+| Agent core | Tool-calling loop built without an agent framework |
+| Reliability | Plan → verify → repair, grounded-answer checks, bounded execution |
+| Data safety | Read-only DuckDB, SQL validation, row limits, query timeouts |
+| Retrieval | BM25 from scratch, LSA from scratch, Sentence Transformers, API embeddings |
+| Cost control | Question-shape routing between cheap and strong models |
+| Context | Schema retrieval, few-shot retrieval, multi-turn conversation memory |
+| Observability | Per-step traces, tokens, latency, cost, stop reason, grounded status |
+| Providers | Ollama, Anthropic, OpenAI, Azure OpenAI |
+| Evaluation | Golden SQL/result sets evaluated against the real warehouse |
+| Demo | Cloud, local, and replay modes with the same comparison UI |
 
-Real output, real 300,000-row warehouse, `llama3.2:3b` running offline on a laptop. Not a
-screenshot of someone else's demo.
+---
 
-*(And there's a genuine finding sitting in that table: cash tips are effectively zero —
-not because nobody tips in cash, but because cash tips never get recorded. The agent
-surfaced it; noticing what it means is still your job.)*
+## See the agent change as the engineering changes
 
-## Does it actually work? Measured, not claimed.
+The demo runs the same question through three versions of the agent side by side: the plain loop, plan/verify/repair, and schema retrieval.
 
-The agent is scored against a golden set where every question carries the SQL that computes
-its own answer, so the truth is recomputed from the warehouse each run — no vibes, no
-self-grading. The headline result is the payoff of Chapter 06: *checking the query in code*
-instead of *asking the model nicely* to get it right.
+[![Data Agent demo comparison](assets/demo-comparison.png)](https://data-agent-live-demo.azurewebsites.net)
 
-| Model | plain loop | + plan · verify · repair | Δ | traps hit |
-|-------|-----------:|-------------------------:|:--|:--|
-| **`qwen2.5:3b`** — free, runs on a laptop | 51% | **69%** | **+18%** | 3 → **0** |
-| **frontier model** (via Azure) | 94% | **100%** | **+6%** | 0 → 0 |
+The receipts under each answer come from the tracing layer: steps, tokens, grounded status, stop reason, and cost when the provider reports it.
 
-Verification helps the *weak* model three times more than the strong one, and drives
-plausible-wrong "trap" answers to zero on both — because the guardrails exist for exactly the
-model that needs them. Reproduce it yourself:
+A useful failure case is a question the warehouse cannot actually answer. The taxi data contains vendor IDs, but no driver identities. The plain loop can still drift into a vendor-level answer; the verified agent checks the request against the available data and refuses the unsupported conclusion.
 
-```bash
-python scripts/run_evals.py --agent=05 --agent=06 --runs=3
-```
+[![Data Agent guardrail comparison](assets/demo-guardrail.png)](https://data-agent-live-demo.azurewebsites.net)
 
-## See it side by side — the [live demo](demo/)
+The hosted page can replay captured **real runs** without making a new model call. When a live backend is available, the same UI can call the cloud or local agent instead. The fallback is explicit rather than pretending a recorded response is live. See [`demo/`](demo/) for the implementation.
 
-**▶ Live Demo: [data-agent-live-demo.azurewebsites.net](https://data-agent-live-demo.azurewebsites.net)** — hosted on Azure with **real, live model calls**. Type a question and watch it run. No install.
+---
 
-Type one question and watch it run through **three chapters at once** — the plain loop, plan·verify,
-and schema retrieval — with the tokens, cost, and `grounded` receipt under each answer. Ask
-*"who is the highest-earning driver?"* and watch the plain loop invent a vendor while plan·verify
-**refuses**. Real runs, not a mock-up.
+## The core idea
 
-```bash
-python demo/serve.py          # then open http://localhost:8000
-```
-
-Three modes — **Cloud** (live frontier model), **Local** (your Ollama), **Replay** (captured real
-runs, no key). If the live model is unavailable, it falls back to the recorded run and says so — so
-the page always works, even hosted as a static site. Details in [`demo/`](demo/).
-
-## Why this exists
-
-There are excellent courses on AI agents. Almost all of them teach you to build a
-chatbot with a weather tool, and then stop right before the part that matters.
-
-This one picks a target that is **objectively checkable**: text-to-SQL. Either the query
-returns the right rows or it doesn't. That single property changes everything downstream —
-it means Chapter 19's evals are *real measurements*, not an LLM grading its own homework.
-It's the reason this domain is the best one to learn agents in, and almost nobody uses it.
-
-You'll build the thing people pay for — [Vanna](https://github.com/vanna-ai/vanna),
-[WrenAI](https://github.com/Canner/WrenAI) — from an empty file.
-
-## Start in 60 seconds
-
-```bash
-git clone https://github.com/chanderbhanu096/data-agent-from-scratch
-cd data-agent-from-scratch
-python -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
-cp .env.example .env
-python scripts/build_warehouse.py     # downloads 50 MB of real NYC taxi data
-ollama pull qwen2.5:3b                # 1.9 GB, free, runs offline
-python chapters/01_first_call/run.py
-```
-
-**No API key needed** to start — the default provider is [Ollama](https://ollama.com), free
-and offline. But everything is provider-agnostic: **pick whichever model you want.**
-
-## Run it on any model
-
-One file — [`dataagent/llm.py`](dataagent/llm.py) — is the only place that knows a provider
-exists. Set `DATAAGENT_PROVIDER` in `.env` and fill in the placeholders for your choice:
-
-| Provider | `.env` | You supply |
-|----------|--------|------------|
-| **Ollama** (local, free) | `DATAAGENT_PROVIDER=ollama`<br>`OLLAMA_MODEL=<model>` | nothing — just `ollama pull <model>` |
-| **Anthropic** | `DATAAGENT_PROVIDER=anthropic`<br>`ANTHROPIC_MODEL=<model>` | `ANTHROPIC_API_KEY=<key>` |
-| **OpenAI** | `DATAAGENT_PROVIDER=openai`<br>`OPENAI_MODEL=<model>` | `OPENAI_API_KEY=<key>` |
-| **Azure OpenAI** | `DATAAGENT_PROVIDER=azure`<br>`AZURE_OPENAI_DEPLOYMENT=<deployment>` | `AZURE_OPENAI_ENDPOINT=<endpoint>`<br>`AZURE_OPENAI_API_KEY=<key>` |
-
-For **Azure OpenAI** (Azure AI Foundry), the endpoint is the OpenAI-compatible `/openai/v1`
-surface and the model is your *deployment* name — paste the endpoint straight from **Keys and
-Endpoint** and it's normalized for you:
-
-```bash
-DATAAGENT_PROVIDER=azure
-AZURE_OPENAI_ENDPOINT=https://<your-resource>.services.ai.azure.com/openai/v1
-AZURE_OPENAI_API_KEY=<key>
-AZURE_OPENAI_DEPLOYMENT=<your-deployment-name>
-```
-
-> **The benchmark numbers in this repo are measured on Azure OpenAI** (`gpt-chat-latest`) as
-> the reference model. Swap in your own and re-run `scripts/run_evals.py` — the eval harness
-> doesn't care which provider produced the answer.
-
-## The warehouse you'll be querying
-
-Real data, not a toy: **300,000 NYC taxi trips** from January 2024, plus zone and payment
-lookups. It has NULLs, outliers, and a borough literally named `N/A` — because the failures
-this repo teaches you to handle don't show up in clean synthetic data.
-
-```
-trips (300,000)  ──┬── zones (265)          "What's the average fare from JFK to Manhattan
-                   └── payment_types (7)     on weekends, by payment method?"
-```
-
-## What you're building
-
-Every chapter adds one capability to the same agent. Read `run.py` top to bottom in one
-sitting — that's the constraint each chapter is written under.
-
-<table>
-<tr><td width="60"><b>Tier 0</b></td><td><b>Foundations</b> — what an LLM call actually is</td></tr>
-<tr><td>01</td><td>Your first call · tokens, cost, and why the model can't answer yet ✅</td></tr>
-<tr><td>02</td><td>Structured output · getting JSON you can trust, and retrying when you can't ✅</td></tr>
-<tr><td>03</td><td>Schema as context · the moment it starts writing real SQL ✅</td></tr>
-<tr><td>04</td><td>Tool calling · handing it the database, from scratch ✅</td></tr>
-<tr><td><b>Tier 1</b></td><td><b>The agent loop, made reliable</b></td></tr>
-<tr><td>05</td><td><b>The loop from scratch, no framework</b> ← the centrepiece ✅</td></tr>
-<tr><td>06</td><td>Plan, verify, repair · check the query in code, don't ask the prompt nicely ✅</td></tr>
-<tr><td>07</td><td>Guardrails · block <code>DROP TABLE</code>, cross-join bombs, and prompt injection ✅</td></tr>
-<tr><td><b>Tier 2</b></td><td><b>Scale &amp; cost</b> — when the warehouse gets real</td></tr>
-<tr><td>08</td><td>Schema retrieval · BM25 from scratch; 94% held while the catalog grew 3→253 tables ✅</td></tr>
-<tr><td>09</td><td>Routing · free model for easy questions, frontier for hard; 79% at 47% paid calls ✅</td></tr>
-<tr><td>10</td><td>Few-shot · retrieved worked examples — and the honest measurement of when they hurt ✅</td></tr>
-<tr><td><b>Tier 3</b></td><td><b>Interaction &amp; production</b></td></tr>
-<tr><td>11</td><td>Conversation · multi-turn follow-ups that carry the thread ✅</td></tr>
-<tr><td>12</td><td>Tracing · every step, token, and dollar on the record — "it works" you can see ✅</td></tr>
-<tr><td>13</td><td>Embeddings · retrieve by meaning; from-scratch LSA vs a pre-trained model, measured (62%→92%) ✅</td></tr>
-<tr><td>14+</td><td>An MCP server · multi-agent · deploy</td></tr>
-</table>
-
-Chapters 01–13 are here and runnable now (✅). Every ✅ chapter ships with a test and a
-measured result. Later chapters land as they're written — watch the repo.
-
-## The one idea
-
-An agent is a `while` loop. Everything else is engineering around it.
+The centre of the project is deliberately small:
 
 ```python
 while True:
-    reply = model(messages, tools)  # 1. THINK
+    reply = model(messages, tools)
     messages.append(reply)
 
-    if not reply.tool_calls:  # 2. DONE?
+    if not reply.tool_calls:
         return reply.text
 
-    for call in reply.tool_calls:  # 3. ACT
+    for call in reply.tool_calls:
         result = execute(call)
-        messages.append(result)  # 4. OBSERVE
+        messages.append(result)
 ```
 
-Four steps. A model cannot *do* anything — it can only emit text. A "tool call" is the
-model emitting structured text that **your code** chooses to execute. The agent's power is
-entirely the tools you give it and the loop you wrap around it.
+Everything else is engineering around that loop.
 
-Once that lands, the buzzwords collapse into one picture:
+```text
+                         question
+                            │
+                            ▼
+                 ┌─────────────────────┐
+                 │ schema / example    │
+                 │ retrieval           │
+                 └─────────┬───────────┘
+                           │
+                           ▼
+                 ┌─────────────────────┐
+                 │ provider gateway    │
+                 │ local / hosted LLM  │
+                 └─────────┬───────────┘
+                           │
+                           ▼
+                 ┌─────────────────────┐
+                 │ agent loop          │
+                 │ think → act → see   │
+                 └─────────┬───────────┘
+                           │
+                 ┌─────────▼───────────┐
+                 │ plan / verify /     │
+                 │ repair              │
+                 └─────────┬───────────┘
+                           │
+                           ▼
+                 ┌─────────────────────┐
+                 │ SQL safety boundary │
+                 │ + compute limits    │
+                 └─────────┬───────────┘
+                           │
+                           ▼
+                     ┌──────────┐
+                     │ DuckDB   │
+                     └────┬─────┘
+                          │
+                          ▼
+                    traced answer
+```
 
-| Buzzword | What it actually is |
+The model gateway is isolated in [`dataagent/llm.py`](dataagent/llm.py). Database access goes through [`dataagent/warehouse.py`](dataagent/warehouse.py). Retrieval lives behind [`dataagent/retrieval.py`](dataagent/retrieval.py) and [`dataagent/embeddings.py`](dataagent/embeddings.py).
+
+That separation is intentional: swapping a model should not rewrite the database boundary, and swapping a retriever should not rewrite the agent loop.
+
+---
+
+## Database
+
+The local warehouse is built by [`scripts/build_warehouse.py`](scripts/build_warehouse.py) from January 2024 [NYC Taxi & Limousine Commission trip data](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page).
+
+It contains **300,000 sampled taxi trips** plus two lookup tables:
+
+```text
+trips (300,000)
+├── vendor_id
+├── pickup_at
+├── dropoff_at
+├── passenger_count
+├── trip_distance_miles
+├── pickup_zone_id ─────────────┐
+├── dropoff_zone_id ────────────┼──► zones (265)
+├── payment_type_id ────────┐   │    ├── zone_id
+├── fare_amount             │   │    ├── borough
+├── tip_amount              │   │    ├── zone_name
+├── tolls_amount            │   │    └── service_zone
+└── total_amount            │   │
+                            │   │
+                            └──► payment_types (7)
+                                 ├── payment_type_id
+                                 └── payment_type
+```
+
+The joins are logical rather than declared foreign-key constraints. The agent has to understand the schema instead of relying on ORM relationship metadata.
+
+The data is also deliberately imperfect. It includes NULLs, outliers, lookup mismatches, and values that are easy for a model to guess incorrectly. Those are exactly the cases a clean synthetic dataset would hide.
+
+### Schema profiling
+
+[`dataagent/warehouse.py`](dataagent/warehouse.py) introspects the database and enriches low-cardinality columns with real values before the schema reaches the model.
+
+A column called `payment_type` does not tell a model whether the stored value is `Credit card`, `CREDIT CARD`, or `credit_card`. Supplying the actual enum-like values fixed an entire class of otherwise plausible SQL errors on the small local model.
+
+---
+
+## Measured behavior
+
+The evaluation harness in [`evals/`](evals/) does not ask another LLM whether an answer looks correct. Golden questions carry SQL that recomputes the expected result from the warehouse.
+
+### Verification
+
+| Model | Plain loop | + plan · verify · repair | Change | Trap answers |
+|---|---:|---:|---:|---:|
+| `qwen2.5:3b` — local | 51% | **69%** | **+18 points** | 3 → **0** |
+| Frontier model via Azure | 94% | **100%** | **+6 points** | 0 → 0 |
+
+The larger improvement on the weaker model is the point: guardrails matter most when the model needs them.
+
+### Retrieval
+
+The schema-retrieval benchmark grows the catalog from **3 to 253 tables**. Lexical BM25 retrieval keeps text-to-SQL accuracy at **94%** on the reference model while avoiding a prompt containing the full catalog.
+
+Chapter 13 then measures semantic retrieval on the same catalog. The from-scratch LSA baseline and BM25 score **62%** on the semantic retrieval set, while a pretrained Sentence Transformer reaches **92%**. The gap is useful evidence of what pretrained world knowledge buys when a schema does not contain the same words as the question.
+
+### Routing
+
+The routing chapter sends simple questions to a cheap/local tier and escalates questions whose shape predicts harder SQL. In the recorded benchmark, routing reaches **79%** while sending **47%** of calls to the paid strong model, compared with 51% for the cheap model alone and 94% for all-strong routing.
+
+These are repository measurements, not claims that the same percentages will hold for every model or dataset. The point is that the alternatives share an evaluation surface and can be compared.
+
+---
+
+## Engineering techniques worth looking at
+
+### 1. One database chokepoint
+
+Every model-generated query passes through [`run_sql()`](dataagent/warehouse.py). The model never receives a raw DuckDB connection.
+
+That gives the application one place to enforce:
+
+- `SELECT` / `WITH` only
+- one statement at a time
+- blocked write and administration operations
+- read-only database connections
+- bounded result sizes
+- bounded query compute
+
+The compute timeout matters independently of a row limit. A huge aggregate can return one row after doing expensive work over millions of intermediate combinations. A watchdog interrupts DuckDB when the configured time budget is exceeded.
+
+### 2. Retrieval is a seam, not a framework
+
+[`dataagent/retrieval.py`](dataagent/retrieval.py) implements BM25 over table cards containing the table name, columns, and a short description.
+
+```text
+question → retrieve tables → render schema → agent
+```
+
+Because downstream code depends on that boundary rather than the scorer, Chapter 13 can replace lexical ranking with semantic ranking without replacing the rest of the agent.
+
+### 3. Embeddings behind one interface
+
+[`dataagent/embeddings.py`](dataagent/embeddings.py) exposes three strategies through the same interface:
+
+| Strategy | Implementation | Network required |
+|---|---|---|
+| `lsa` | TF-IDF + truncated SVD built with [NumPy](https://numpy.org/) | No |
+| `model` | [Sentence Transformers](https://www.sbert.net/) with `all-MiniLM-L6-v2` | No after download |
+| `api` | OpenAI-compatible embedding endpoint | Yes |
+
+All vectors are L2-normalized, so cosine similarity becomes a matrix dot product. The index code does not need to know which embedder produced the vectors.
+
+### 4. Model routing based on question shape
+
+[`dataagent/routing.py`](dataagent/routing.py) looks at the question, not the underlying rows, for signals correlated with harder queries: joins, ranked aggregates, minimum-count constraints, and related shapes.
+
+The route includes its reasons. That makes model cost inspectable instead of hiding it behind a generic "smart routing" label.
+
+### 5. Few-shot retrieval without evaluation leakage
+
+[`dataagent/fewshot.py`](dataagent/fewshot.py) retrieves solved question/SQL examples, but the example library is kept separate from the golden evaluation set.
+
+That sounds minor, but retrieving an evaluated question's own answer would measure memorization rather than generalization.
+
+### 6. Tracing through an existing callback
+
+[`dataagent/trace.py`](dataagent/trace.py) attaches to the loop through `on_step` rather than adding observability code to every branch of the agent.
+
+The loop already maintains cumulative token/cost usage, so per-step accounting is calculated by diffing successive snapshots. One run becomes one JSONL record containing:
+
+- provider and model
+- tool calls and steps
+- latency
+- input/output tokens
+- cost
+- stop reason
+- grounded status
+
+JSONL keeps the result easy to grep, diff, replay, or load into a dataframe later.
+
+### 7. A demo that degrades honestly
+
+[`demo/index.html`](demo/index.html) uses the browser's [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) to ask the local server which execution modes are available. If there is no backend, the page loads captured runs instead.
+
+The three comparison columns execute concurrently with [`Promise.all()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all), so each result can appear as its agent finishes.
+
+The UI is deliberately framework-free and uses standard browser features:
+
+- [CSS Grid](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout) for the three-column comparison
+- [media queries](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_media_queries/Using_media_queries) for the mobile layout
+- [`@keyframes`](https://developer.mozilla.org/en-US/docs/Web/CSS/@keyframes) for loading states
+- [`aria-pressed`](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-pressed) for accessible mode toggles
+- [`fetch()`](https://developer.mozilla.org/en-US/docs/Web/API/Window/fetch) for the live/replay API boundary
+
+The local server in [`demo/serve.py`](demo/serve.py) is also intentionally small: Python's `ThreadingHTTPServer` and `BaseHTTPRequestHandler`, with no Flask or FastAPI dependency.
+
+---
+
+## Technologies and libraries
+
+The core dependencies are intentionally small. Optional provider and embedding packages stay optional in [`pyproject.toml`](pyproject.toml).
+
+| Technology | Role |
 |---|---|
-| **RAG** | Putting relevant knowledge into `messages` before the model thinks |
-| **Agentic RAG** | Retrieval as an entry in `tools`, so the model decides *when* to look |
-| **MCP** | A wire protocol for where `tools` come from — a separate process you didn't write |
-| **Memory** | What survives in `messages` between runs of the loop |
-| **Multi-agent** | A tool whose `execute()` is *another loop* |
-| **Guardrails** | Validation inside `execute()` |
-| **Evals** | Unit tests for a function that returns something different every time |
+| [Python](https://www.python.org/) 3.11+ | Agent, retrieval, evaluation, demo server |
+| [DuckDB](https://duckdb.org/) | Embedded analytical warehouse and read-only query runtime |
+| [Pydantic](https://docs.pydantic.dev/) | Typed boundaries and validation |
+| [HTTPX](https://www.python-httpx.org/) | HTTP transport for provider integrations |
+| [NumPy](https://numpy.org/) | TF-IDF/SVD embedding baseline and vector ranking |
+| [Sentence Transformers](https://www.sbert.net/) | Optional local semantic embeddings |
+| [Ollama](https://ollama.com/) | Local/offline LLM provider |
+| [OpenAI Python](https://github.com/openai/openai-python) | OpenAI and Azure OpenAI compatible access |
+| [Anthropic Python](https://github.com/anthropics/anthropic-sdk-python) | Optional Claude provider |
+| [Rich](https://github.com/Textualize/rich) | Terminal output |
+| [pytest](https://docs.pytest.org/) | Shared and chapter-level verification |
+| [Ruff](https://docs.astral.sh/ruff/) | Linting and format checks |
+| [GitHub Actions](https://docs.github.com/en/actions) | CI across supported Python versions |
+| [Azure](https://azure.microsoft.com/) | Hosted model integration and demo deployment |
 
-Every chapter is "one more thing you can do to that loop."
+### Fonts used by the demo
 
-## Architecture
+The demo does **not** download a webfont. [`demo/index.html`](demo/index.html) uses native system stacks so there is no font request on page load.
 
+The sans-serif stack includes [Segoe UI](https://learn.microsoft.com/en-us/typography/font-list/segoe-ui), [Roboto](https://fonts.google.com/specimen/Roboto), Helvetica, and Arial.
+
+Code and trace output use the system monospace stack, including Apple's [SF Mono](https://developer.apple.com/fonts/), Menlo, and Microsoft's [Consolas](https://learn.microsoft.com/en-us/typography/font-list/consolas).
+
+---
+
+## Chapters
+
+Each chapter adds one capability to the same system and keeps the change small enough to inspect.
+
+| Chapter | Capability |
+|---|---|
+| 01 | First model call: messages, tokens, usage and cost |
+| 02 | Structured output and retries |
+| 03 | Database schema as model context |
+| 04 | Tool calling and SQL execution |
+| 05 | Agent loop from scratch |
+| 06 | Plan, verify and repair |
+| 07 | SQL and compute guardrails |
+| 08 | BM25 schema retrieval over a 253-table catalog |
+| 09 | Cheap/strong model routing |
+| 10 | Retrieved few-shot examples |
+| 11 | Multi-turn conversation memory |
+| 12 | Step-level tracing and run receipts |
+| 13 | LSA, pretrained and API embeddings |
+
+The chapter implementations and their individual explanations live under [`chapters/`](chapters/).
+
+---
+
+## Project structure
+
+```text
+data-agent-from-scratch/
+├── .github/
+│   └── workflows/
+│
+├── assets/
+│
+├── chapters/
+│   ├── 01_first_call/
+│   ├── 02_structured_output/
+│   ├── 03_schema_context/
+│   ├── 04_tool_calling/
+│   ├── 05_agent_loop/
+│   ├── 06_plan_and_verify/
+│   ├── 07_guardrails/
+│   ├── 08_schema_retrieval/
+│   ├── 09_routing/
+│   ├── 10_few_shot/
+│   ├── 11_conversation/
+│   ├── 12_tracing/
+│   └── 13_embeddings/
+│
+├── dataagent/
+├── demo/
+│   └── data/
+├── evals/
+├── scripts/
+├── tests/
+│
+├── data/                     # generated locally, not committed
+│
+├── .env.example
+├── .gitignore
+├── CONTRIBUTING.md
+├── LICENSE
+├── README.md
+├── conftest.py
+└── pyproject.toml
 ```
-            ┌──────────────────────────────────────────┐
-            │  CONTROL      the loop, step + $ budgets │   ch 05, 06, 07
-            └───────┬──────────────────────────────────┘
-                    │
-     ┌──────────────┼───────────────┬─────────────────┐
-     ▼              ▼               ▼                 ▼
-┌─────────┐  ┌────────────┐  ┌───────────┐  ┌──────────────┐
-│ GATEWAY │  │   TOOLS    │  │  CONTEXT  │  │  RETRIEVAL   │
-│ ollama/ │  │ run_sql,   │  │ what goes │  │ schema RAG,  │
-│ claude/ │  │ inspect,   │  │ in, what  │  │ few-shot     │
-│ gpt     │  │ + MCP      │  │ gets cut  │  │ examples     │
-└─────────┘  └────────────┘  └───────────┘  └──────────────┘
-  ch 01        ch 04, 15        ch 06          ch 09–14
-                    │
-            ┌───────▼──────────────────────────────────┐
-            │  OBSERVABILITY   traces, evals, cost     │   ch 19, 20, 23
-            └──────────────────────────────────────────┘
-```
 
-Swap the model → only `GATEWAY` changes. Add a data source → only `RETRIEVAL` changes.
-That separation is the difference between an engineer and someone who copied a quickstart.
+[`dataagent/`](dataagent/) contains the shared implementation: providers, database access, tools, retrieval, embeddings, routing, evaluation support, and tracing.
 
-## Repo layout
+[`chapters/`](chapters/) is the learning path. Each directory isolates one architectural change so the difference from the previous version stays readable.
 
-```
-dataagent/          the small shared library (gateway, warehouse, config)
-  llm.py            ← the only file that knows a provider exists
-  warehouse.py      ← the only path from agent to database
-chapters/NN_name/
-  README.md         the concept, and why it's built this way
-  run.py            runnable, readable top to bottom
-  test_*.py         proof it works
-scripts/            build_warehouse.py
-evals/              golden questions with expected result sets   (ch 19)
-```
+[`demo/`](demo/) contains the comparison interface, small Python server, deployment script, and captured runs used by replay mode.
+
+[`evals/`](evals/) contains the golden evaluation cases. [`scripts/`](scripts/) contains repository-level utilities such as warehouse construction and evaluation runners. [`tests/`](tests/) covers the shared components while chapter-specific tests remain beside the code they verify.
+
+`data/` is generated locally and contains the downloaded TLC sources and DuckDB warehouse. It is intentionally excluded from Git.
+
+---
+
+## CI
+
+The workflow in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs the project on Python **3.11, 3.12 and 3.13**.
+
+CI installs the complete optional dependency set, caches the generated warehouse, runs Ruff lint and format checks, and then executes pytest.
+
+No model API key is required for the test suite. Database behavior runs against the real DuckDB warehouse while provider-dependent behavior can use deterministic test doubles, which keeps pull requests testable from forks without exposing credentials.
+
+---
 
 ## Contributing
 
-Issues tagged `good first issue` are genuinely good first issues. Ports to other
-warehouses (Postgres, BigQuery, Snowflake) are especially welcome — the interface to
-implement is `dataagent/warehouse.py`, and it's under 120 lines.
+Contributions are welcome, especially additions that preserve the project's main constraint: the behavior should stay understandable and measurable.
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the repository workflow.
 
 ## License
 
-MIT — see [LICENSE](LICENSE). NYC TLC trip data is public domain.
+Released under the [MIT License](LICENSE).
+
+The NYC TLC source dataset is provided separately by the New York City Taxi & Limousine Commission.
