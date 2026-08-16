@@ -70,24 +70,25 @@ the server's **own** sandbox rejects a path escape — `read_text_file("/etc/pas
 as an error *result* ("Access denied - path outside allowed directories"), not a breach, and the
 server stays up. Across a process boundary the boundary matters *more*, not less.
 
-## → Same client, now on the cloud (Azure Blob / Google Drive)
+## → Same client, now on the cloud
 
 Here's the payoff the loopback couldn't show. The client above talks to *any* MCP server, so
-moving the file into the cloud changes essentially **one thing — the launch command** (the loop
-and client are byte-for-byte identical; the prompt just names whatever tools the new server
-offers):
+reaching the cloud changes only **the launch command** — the loop and client are byte-for-byte
+identical, and the prompt just names whatever tools the new server offers:
 
 ```python
 # today:   a local folder
 MCPClient(["npx", "-y", "@modelcontextprotocol/server-filesystem", "inbox"])
-# tomorrow: the same CSV in Azure Blob Storage, read over Microsoft's official Azure MCP server
+# a cloud store: Microsoft's official Azure MCP server (reuses your az login)
 MCPClient(["npx", "-y", "@azure/mcp", "server", "start"])
 ```
 
-Same loop, same client, same answer — the file just lives in Azure now.
-**[`azure_blob.md`](azure_blob.md)** is the turnkey guide: it reuses your existing `az login`
-(no new OAuth app), uploads the sample CSV to a storage account, and runs this exact chapter
-against the cloud. Google Drive works identically — swap in its MCP server and authorize once.
+One honest catch, verified by probing the server: the **official Azure server returns blob
+*metadata*, not file contents** — so it lets the agent *inspect* your live storage over MCP
+(containers, blobs, sizes), but it can't reproduce this chapter's *read-the-rows-and-answer* demo.
+For that you need a **content-capable** server; **Google Drive's** reads file content and keeps
+the demo intact, at the cost of a one-time OAuth setup. **[`azure_blob.md`](azure_blob.md)** lays
+out both paths and that trade-off in full — same client either way.
 
 ## Where this is deliberately minimal (and honest)
 
@@ -107,8 +108,8 @@ against the cloud. Google Drive works identically — swap in its MCP server and
    `list_directory`, then read what it needs. No code change; that's the plug-in property.
 2. Add `write_file` to `SAFE_TOOLS` and ask the agent to "save a summary." Watch it gain the
    ability to *change your disk*, and decide whether you'd ever want that on by default.
-3. Do the cloud swap in [`azure_blob.md`](azure_blob.md). The only line that changes is the one
-   that launches the server.
+3. Point the client at a cloud MCP server (see [`azure_blob.md`](azure_blob.md)) — the client and
+   loop don't change; only the server, and the tools it offers, do.
 
 ---
 
