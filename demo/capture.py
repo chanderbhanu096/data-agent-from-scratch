@@ -36,7 +36,7 @@ def main() -> None:
         raise SystemExit(1)
 
     questions = spine.DEMO_QUESTIONS
-    columns = [{k: c[k] for k in ("id", "chapter", "title", "subtitle")} for c in spine.COLUMNS]
+    columns = spine.public_columns()
     runs: dict[str, list] = {}
 
     for qi, question in enumerate(questions, 1):
@@ -54,6 +54,8 @@ def main() -> None:
     out = {
         "captured_with": args.mode,
         "questions": questions,
+        "examples": spine.examples(),
+        "dataset": spine.DATASET,
         "columns": columns,
         "runs": runs,
     }

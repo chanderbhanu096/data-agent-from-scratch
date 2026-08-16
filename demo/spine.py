@@ -63,13 +63,18 @@ def _run_08(llm: LLM, q: str, tr: Tracer):
     return _ch08.run_agent(llm, q, on_step=tr)
 
 
+_REPO = "https://github.com/chanderbhanu096/data-agent-from-scratch/tree/main/chapters"
+
 # The demo spine: one column per capability, left → right = the story of the repo.
+# `plain` is the visitor-facing one-liner; `subtitle` is the technical tagline.
 COLUMNS: list[dict[str, Any]] = [
     {
         "id": "ch05",
         "chapter": "05",
         "title": "Plain loop",
         "subtitle": "think → act → observe, no guardrails",
+        "plain": "Just writes SQL and runs it. Fast — but it can be confidently wrong.",
+        "link": f"{_REPO}/05_agent_loop",
         "run": _run_05,
     },
     {
@@ -77,6 +82,8 @@ COLUMNS: list[dict[str, Any]] = [
         "chapter": "06",
         "title": "Plan · verify · repair",
         "subtitle": "checks its own SQL, refuses the impossible",
+        "plain": "Checks its own SQL and refuses questions the data can't answer.",
+        "link": f"{_REPO}/06_plan_and_verify",
         "run": _run_06,
     },
     {
@@ -84,11 +91,64 @@ COLUMNS: list[dict[str, Any]] = [
         "chapter": "08",
         "title": "Schema retrieval",
         "subtitle": "finds the right table out of 253",
+        "plain": "Finds the right tables first, so it still works when the schema is huge.",
+        "link": f"{_REPO}/08_schema_retrieval",
         "run": _run_08,
     },
 ]
 COLUMN_IDS = [c["id"] for c in COLUMNS]
 _BY_ID = {c["id"]: c for c in COLUMNS}
+_PUBLIC_COLUMN_KEYS = ("id", "chapter", "title", "subtitle", "plain", "link")
+
+
+def public_columns() -> list[dict[str, Any]]:
+    """The column metadata safe to send to the browser (everything but the `run` fn)."""
+    return [{k: c[k] for k in _PUBLIC_COLUMN_KEYS} for c in COLUMNS]
+
+
+# What's in the warehouse, curated for a first-time visitor so they know what they
+# can ask. Kept in sync by hand with scripts/build_warehouse.py — it's three fixed
+# tables, so a readable summary beats dumping DDL at someone who's never seen it.
+DATASET: dict[str, Any] = {
+    "name": "NYC yellow-taxi rides — January 2024",
+    "tables": [
+        {
+            "name": "trips",
+            "rows": "300,000",
+            "about": "one row per ride",
+            "columns": [
+                "pickup_at",
+                "dropoff_at",
+                "trip_distance_miles",
+                "passenger_count",
+                "fare_amount",
+                "tip_amount",
+                "tolls_amount",
+                "total_amount",
+                "pickup_zone_id",
+                "dropoff_zone_id",
+                "payment_type_id",
+                "vendor_id",
+            ],
+        },
+        {
+            "name": "zones",
+            "rows": "265",
+            "about": "pickup / drop-off locations",
+            "columns": ["zone_id", "borough", "zone_name", "service_zone"],
+        },
+        {
+            "name": "payment_types",
+            "rows": "7",
+            "about": "how the fare was paid",
+            "columns": ["payment_type_id", "payment_type"],
+        },
+    ],
+    "relationships": [
+        "trips.pickup_zone_id / dropoff_zone_id → zones.zone_id",
+        "trips.payment_type_id → payment_types.payment_type_id",
+    ],
+}
 
 # Curated so the columns visibly diverge. The last one is unanswerable from this
 # warehouse — the plain loop tends to invent a driver, plan/verify refuses. That
@@ -106,6 +166,22 @@ def demo_questions() -> list[str]:
     """Prefer the exact set that was captured, so replay always has an answer."""
     captured = load_runs().get("questions")
     return captured or DEMO_QUESTIONS
+
+
+# Notes attached to specific example questions. The trap is the whole point of the
+# demo, so it gets flagged. Keys must match a captured question exactly, or replay
+# can't answer a click.
+_EXAMPLE_NOTES = {
+    "Who is the highest-earning driver?": {
+        "note": "a trick — this data has no drivers; watch them disagree",
+        "trap": True,
+    },
+}
+
+
+def examples() -> list[dict[str, Any]]:
+    """Clickable example questions for the UI, the trap among them, flagged."""
+    return [{"q": q, **_EXAMPLE_NOTES.get(q, {})} for q in demo_questions()]
 
 
 def _last_sql(result: Any) -> str | None:

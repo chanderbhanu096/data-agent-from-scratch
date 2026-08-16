@@ -12,19 +12,25 @@
       "id": "ch05",
       "chapter": "05",
       "title": "Plain loop",
-      "subtitle": "think \u2192 act \u2192 observe, no guardrails"
+      "subtitle": "think \u2192 act \u2192 observe, no guardrails",
+      "plain": "Just writes SQL and runs it. Fast \u2014 but it can be confidently wrong.",
+      "link": "https://github.com/chanderbhanu096/data-agent-from-scratch/tree/main/chapters/05_agent_loop"
     },
     {
       "id": "ch06",
       "chapter": "06",
       "title": "Plan \u00b7 verify \u00b7 repair",
-      "subtitle": "checks its own SQL, refuses the impossible"
+      "subtitle": "checks its own SQL, refuses the impossible",
+      "plain": "Checks its own SQL and refuses questions the data can't answer.",
+      "link": "https://github.com/chanderbhanu096/data-agent-from-scratch/tree/main/chapters/06_plan_and_verify"
     },
     {
       "id": "ch08",
       "chapter": "08",
       "title": "Schema retrieval",
-      "subtitle": "finds the right table out of 253"
+      "subtitle": "finds the right table out of 253",
+      "plain": "Finds the right tables first, so it still works when the schema is huge.",
+      "link": "https://github.com/chanderbhanu096/data-agent-from-scratch/tree/main/chapters/08_schema_retrieval"
     }
   ],
   "runs": {
@@ -622,6 +628,73 @@
           }
         ]
       }
+    ]
+  },
+  "examples": [
+    {
+      "q": "What is the average tip amount by payment type? Show the payment type name."
+    },
+    {
+      "q": "Which pickup zone has the most trips?"
+    },
+    {
+      "q": "How many trips had a total amount over 100 dollars?"
+    },
+    {
+      "q": "How many trips started in Manhattan?"
+    },
+    {
+      "q": "Who is the highest-earning driver?",
+      "note": "a trick \u2014 this data has no drivers; watch them disagree",
+      "trap": true
+    }
+  ],
+  "dataset": {
+    "name": "NYC yellow-taxi rides \u2014 January 2024",
+    "tables": [
+      {
+        "name": "trips",
+        "rows": "300,000",
+        "about": "one row per ride",
+        "columns": [
+          "pickup_at",
+          "dropoff_at",
+          "trip_distance_miles",
+          "passenger_count",
+          "fare_amount",
+          "tip_amount",
+          "tolls_amount",
+          "total_amount",
+          "pickup_zone_id",
+          "dropoff_zone_id",
+          "payment_type_id",
+          "vendor_id"
+        ]
+      },
+      {
+        "name": "zones",
+        "rows": "265",
+        "about": "pickup / drop-off locations",
+        "columns": [
+          "zone_id",
+          "borough",
+          "zone_name",
+          "service_zone"
+        ]
+      },
+      {
+        "name": "payment_types",
+        "rows": "7",
+        "about": "how the fare was paid",
+        "columns": [
+          "payment_type_id",
+          "payment_type"
+        ]
+      }
+    ],
+    "relationships": [
+      "trips.pickup_zone_id / dropoff_zone_id \u2192 zones.zone_id",
+      "trips.payment_type_id \u2192 payment_types.payment_type_id"
     ]
   }
 }

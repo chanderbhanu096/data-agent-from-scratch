@@ -8,20 +8,61 @@
   :root {
     --bg: #0d1117; --panel: #161b22; --panel-2: #1c232c; --line: #2b3440;
     --text: #e6edf3; --muted: #8b949e; --accent: #3fb950; --accent-dim: #235b32;
-    --warn: #d29922; --bad: #f85149; --blue: #58a6ff; --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --warn: #d29922; --bad: #f85149; --blue: #58a6ff; --purple: #bc8cff;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--text);
     font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
   a { color: var(--blue); text-decoration: none; }
   a:hover { text-decoration: underline; }
-  .wrap { max-width: 1200px; margin: 0 auto; padding: 28px 20px 60px; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 30px 20px 64px; }
 
-  header h1 { margin: 0 0 4px; font-size: 26px; letter-spacing: -0.02em; }
-  header h1 .dim { color: var(--muted); font-weight: 400; }
-  header p { margin: 0; color: var(--muted); max-width: 70ch; }
+  header h1 { margin: 0 0 6px; font-size: 27px; letter-spacing: -0.02em; }
+  header p { margin: 0; color: var(--muted); max-width: 74ch; font-size: 15px; }
+  header p b { color: var(--text); font-weight: 600; }
 
-  .controls { margin: 22px 0 8px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  /* Dataset strip — so a stranger knows what they can ask */
+  details.dataset { margin: 20px 0 4px; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 12px; overflow: hidden; }
+  details.dataset > summary { list-style: none; cursor: pointer; padding: 12px 16px; display: flex;
+    gap: 10px; align-items: center; flex-wrap: wrap; font-size: 13.5px; }
+  details.dataset > summary::-webkit-details-marker { display: none; }
+  .ds-tag { font: 700 11px/1 var(--mono); color: var(--blue); background: #12233b; border: 1px solid #1d3a5f;
+    padding: 4px 7px; border-radius: 6px; }
+  .ds-tbl { font: 600 12px/1 var(--mono); color: var(--text); background: var(--panel-2);
+    border: 1px solid var(--line); padding: 4px 8px; border-radius: 6px; }
+  .ds-tbl span { color: var(--muted); font-weight: 400; }
+  .ds-more { margin-left: auto; color: var(--muted); font-size: 12.5px; }
+  .ds-body { padding: 4px 16px 16px; border-top: 1px solid var(--line); display: grid;
+    grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 760px) { .ds-body { grid-template-columns: 1fr; } }
+  .ds-card { background: var(--panel-2); border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px; }
+  .ds-card h4 { margin: 0 0 2px; font: 700 13px var(--mono); color: var(--accent); }
+  .ds-card .rows { color: var(--muted); font-size: 11.5px; margin-bottom: 6px; }
+  .ds-card .cols { font: 11.5px/1.7 var(--mono); color: #b6c2cf; word-break: break-word; }
+  .ds-rel { grid-column: 1 / -1; color: var(--muted); font-size: 12.5px; }
+  .ds-rel code { color: var(--purple); font-size: 12px; }
+
+  /* Ask row */
+  .ask { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  input[type=text] { flex: 1 1 340px; background: var(--panel); color: var(--text); border: 1px solid var(--line);
+    border-radius: 10px; padding: 12px 14px; font-size: 15px; }
+  input[type=text]:focus { outline: none; border-color: var(--blue); }
+  button.run { background: var(--accent); color: #06210e; border: 0; border-radius: 10px; padding: 12px 22px;
+    font-size: 15px; font-weight: 700; cursor: pointer; }
+  button.run:disabled { opacity: .5; cursor: not-allowed; }
+
+  .examples { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .examples .lbl { color: var(--muted); font-size: 12.5px; margin-right: 2px; }
+  .ex { border: 1px solid var(--line); background: var(--panel); color: var(--text); border-radius: 999px;
+    padding: 7px 13px; font-size: 12.5px; cursor: pointer; }
+  .ex:hover { border-color: var(--blue); }
+  .ex.trap { border-color: #5c4a12; color: var(--warn); background: #201b0c; }
+  .ex.trap:hover { border-color: var(--warn); }
+
+  /* Modes */
+  .moderow { margin-top: 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
   .modes { display: inline-flex; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
   .mode { border: 0; background: transparent; color: var(--muted); padding: 7px 13px; border-radius: 7px;
     cursor: pointer; font-size: 13px; font-weight: 600; display: flex; gap: 6px; align-items: center; }
@@ -29,28 +70,23 @@
   .mode:disabled { opacity: .4; cursor: not-allowed; }
   .mode .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
   .mode:disabled .dot { background: var(--muted); }
+  .modehint { color: var(--muted); font-size: 12.5px; }
+  .modehint b { color: var(--warn); font-weight: 600; }
 
-  .qrow { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
-  select, input[type=text] { background: var(--panel); color: var(--text); border: 1px solid var(--line);
-    border-radius: 9px; padding: 10px 12px; font-size: 14px; }
-  select { min-width: 260px; }
-  input[type=text] { flex: 1 1 320px; }
-  button.run { background: var(--accent); color: #06210e; border: 0; border-radius: 9px; padding: 10px 20px;
-    font-size: 14px; font-weight: 700; cursor: pointer; }
-  button.run:disabled { opacity: .5; cursor: not-allowed; }
+  .status { margin-top: 12px; font-size: 13px; color: var(--muted); min-height: 18px; }
 
-  .hint { margin-top: 10px; font-size: 13px; color: var(--muted); min-height: 18px; }
-  .hint b { color: var(--warn); font-weight: 600; }
-
-  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 14px; }
   @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
 
-  .col { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+  .col { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+    display: flex; flex-direction: column; transition: box-shadow .2s, border-color .2s; }
+  .col.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-dim), 0 0 26px -8px var(--accent); }
   .col .head { padding: 14px 16px; border-bottom: 1px solid var(--line); }
   .chip-ch { display: inline-block; font: 700 11px/1 var(--mono); color: var(--accent); background: var(--accent-dim);
     padding: 4px 7px; border-radius: 6px; letter-spacing: .06em; }
-  .col .title { font-weight: 700; margin: 8px 0 2px; }
-  .col .subtitle { color: var(--muted); font-size: 12.5px; }
+  .chip-ch:hover { text-decoration: none; filter: brightness(1.2); }
+  .col .title { font-weight: 700; margin: 8px 0 3px; }
+  .col .plain { color: var(--muted); font-size: 12.5px; line-height: 1.45; }
   .col .body { padding: 14px 16px; flex: 1; display: flex; flex-direction: column; gap: 12px; }
 
   .answer { font-size: 15px; }
@@ -70,10 +106,14 @@
   .r.bad { color: var(--bad); border-color: #5c1e20; }
   .r.warn { color: var(--warn); border-color: #4d3d12; }
 
+  .legend { margin-top: 12px; color: var(--muted); font-size: 12px; }
+  .legend b { color: var(--text); font-weight: 600; }
+
   .shimmer { height: 12px; border-radius: 6px; background: linear-gradient(90deg, var(--panel-2) 25%, #232c36 37%, var(--panel-2) 63%);
     background-size: 400% 100%; animation: sh 1.3s ease infinite; }
   @keyframes sh { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
   .running { color: var(--muted); font-size: 13px; display: flex; gap: 8px; align-items: center; }
+  .queued { color: var(--muted); font-size: 13px; }
 
   footer { margin-top: 34px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 16px; }
 </style>
@@ -81,56 +121,88 @@
 <body>
 <div class="wrap">
   <header>
-    <h1>Data Agent <span class="dim">— watch it get smarter, one chapter at a time</span></h1>
-    <p>The same question, run through each chapter's real agent, side by side. These are genuine runs —
-       the receipts under each answer are Chapter 12's tracing. Nothing here is faked.</p>
+    <h1>Ask NYC taxi data in plain English</h1>
+    <p>Type a question. <b>Three versions of the same from-scratch AI agent</b> answer it, one after
+       another — and you see which ones you can trust. Every run is real; the badges under each answer
+       are the agent's own trace.</p>
   </header>
 
-  <div class="controls">
-    <div class="modes" id="modes"></div>
-    <span class="hint" id="modehint"></span>
-  </div>
+  <details class="dataset" id="dataset"></details>
 
-  <div class="qrow">
-    <select id="qpick" aria-label="Example questions"></select>
-    <input type="text" id="qinput" placeholder="…or type your own question about the taxi data" />
+  <div class="ask">
+    <input type="text" id="qinput" placeholder="e.g. average tip by payment type — ask about tips, fares, zones, boroughs, payment types…" />
     <button class="run" id="runbtn">Run</button>
   </div>
-  <div class="hint" id="status"></div>
+  <div class="examples" id="examples"></div>
+
+  <div class="moderow">
+    <div class="modes" id="modes"></div>
+    <span class="modehint" id="modehint"></span>
+  </div>
+  <div class="status" id="status"></div>
 
   <div class="grid" id="grid"></div>
+  <div class="legend" id="legend"></div>
 
   <footer id="footer"></footer>
 </div>
 
 <script>
-const state = { server: false, mode: "replay", modes: {}, questions: [], columns: [], runs: null };
+const state = { server: false, mode: "replay", modes: {}, questions: [], examples: [], dataset: null, columns: [], runs: null };
 
 async function init() {
   try {
     const cfg = await fetch("/api/config").then(r => { if (!r.ok) throw 0; return r.json(); });
     state.server = true;
     state.modes = cfg.modes; state.questions = cfg.questions; state.columns = cfg.columns;
+    state.examples = cfg.examples || []; state.dataset = cfg.dataset || null;
   } catch {
-    // No backend (static hosting) → replay-only from the captured file.
+    // No backend (static hosting) → everything from the captured file.
     const runs = await fetch("./data/runs.json").then(r => r.json()).catch(() => null);
     state.runs = runs || { questions: [], runs: {} };
     state.modes = { cloud: false, local: false, replay: (state.runs.questions || []).length > 0 };
     state.questions = state.runs.questions || [];
-    state.columns = state.runs.columns || inferColumns(state.runs);
+    state.columns = state.runs.columns || [];
+    state.examples = state.runs.examples || (state.questions.map(q => ({ q })));
+    state.dataset = state.runs.dataset || null;
   }
-  state.mode = state.modes.cloud ? "cloud" : (state.modes.local ? "local" : "replay");
-  renderModes(); renderQuestions(); renderColumns(blankBodies());
-  hintForMode();
+  // Default to replay: it paints instantly and costs nothing. Live is one click away.
+  state.mode = "replay";
+  renderDataset(); renderExamples(); renderModes(); hintForMode(); renderLegend();
+  renderColumns(state.columns.map(c => ({ ...c, _state: "idle" })));
   document.getElementById("footer").innerHTML =
-    'Real runs, replayed — this is exactly what <b>Chapter 12 — Tracing</b> records. ' +
-    '<a href="https://github.com/chanderbhanu096/data-agent-from-scratch" target="_blank" rel="noopener">See the code →</a>';
+    'Built from scratch — 16 chapters, one Python file at a time. ' +
+    '<a href="https://github.com/chanderbhanu096/data-agent-from-scratch" target="_blank" rel="noopener">Read the code →</a>';
+
+  // Instant payoff: auto-run the trick question so the contrast is on screen immediately.
+  const trap = (state.examples.find(e => e.trap) || {}).q;
+  if (trap && state.modes.replay) { document.getElementById("qinput").value = trap; run(trap); }
 }
 
-function inferColumns(runs) {
-  const first = (runs.questions || [])[0];
-  const cols = first ? (runs.runs[first] || []) : [];
-  return cols.map(c => ({ id: c.id, chapter: c.chapter, title: c.title, subtitle: c.subtitle }));
+function renderDataset() {
+  const d = state.dataset, el = document.getElementById("dataset");
+  if (!d) { el.style.display = "none"; return; }
+  const tbls = d.tables.map(t => `<span class="ds-tbl">${esc(t.name)} <span>${esc(t.rows)}</span></span>`).join("");
+  const cards = d.tables.map(t => `
+    <div class="ds-card"><h4>${esc(t.name)}</h4><div class="rows">${esc(t.rows)} rows · ${esc(t.about)}</div>
+      <div class="cols">${t.columns.map(esc).join(" · ")}</div></div>`).join("");
+  const rels = `<div class="ds-rel">how they join: ${d.relationships.map(r => `<code>${esc(r)}</code>`).join(" &nbsp;·&nbsp; ")}</div>`;
+  el.innerHTML =
+    `<summary><span class="ds-tag">THE DATA</span>${esc(d.name)} ${tbls}<span class="ds-more">what's in it ▾</span></summary>
+     <div class="ds-body">${cards}${rels}</div>`;
+}
+
+function renderExamples() {
+  const el = document.getElementById("examples");
+  el.innerHTML = `<span class="lbl">Try:</span>`;
+  for (const ex of state.examples) {
+    const b = document.createElement("button");
+    b.className = "ex" + (ex.trap ? " trap" : "");
+    b.textContent = (ex.trap ? "⚠ " : "") + ex.q;
+    if (ex.note) b.title = ex.note;
+    b.onclick = () => { document.getElementById("qinput").value = ex.q; run(ex.q); };
+    el.appendChild(b);
+  }
 }
 
 const MODE_LABEL = { cloud: "Cloud (live)", local: "Local (live)", replay: "Replay" };
@@ -152,22 +224,15 @@ function hintForMode() {
   const h = document.getElementById("modehint");
   if (state.mode === "cloud") h.innerHTML = "Real calls to a hosted frontier model.";
   else if (state.mode === "local") h.innerHTML = "Real calls to your local Ollama — offline, no key.";
-  else h.innerHTML = "Playing back captured real runs — no model needed.";
-  if (!state.modes.cloud && !state.modes.local)
-    h.innerHTML += " <b>Live modes are off here — you are seeing recorded runs.</b>";
+  else if (state.modes.cloud || state.modes.local)
+    h.innerHTML = "Recorded runs (instant). <b>Click Cloud (live) to run your own question for real.</b>";
+  else h.innerHTML = "Playing back captured real runs — no model needed here.";
 }
 
-function renderQuestions() {
-  const sel = document.getElementById("qpick");
-  sel.innerHTML = "";
-  for (const q of state.questions) {
-    const o = document.createElement("option"); o.value = q; o.textContent = q; sel.appendChild(o);
-  }
-  sel.onchange = () => { document.getElementById("qinput").value = ""; };
-}
-
-function blankBodies() {
-  return state.columns.map(c => ({ ...c, _state: "idle" }));
+function renderLegend() {
+  document.getElementById("legend").innerHTML =
+    '<b>grounded</b> = the answer came from real query results, not guessed &nbsp;·&nbsp; ' +
+    '<b>steps / tokens / $</b> = what that run actually used. Lower isn\'t always better — the careful agent spends more to be right.';
 }
 
 function renderColumns(cols) {
@@ -179,11 +244,13 @@ function renderColumns(cols) {
 function colCard(c) {
   const el = document.createElement("div");
   el.className = "col"; el.id = "col-" + c.id;
+  const chip = c.link
+    ? `<a class="chip-ch" href="${esc(c.link)}" target="_blank" rel="noopener">CH ${esc(c.chapter)} ↗</a>`
+    : `<span class="chip-ch">CH ${esc(c.chapter)}</span>`;
   el.innerHTML = `
-    <div class="head">
-      <span class="chip-ch">CH ${c.chapter}</span>
+    <div class="head">${chip}
       <div class="title">${esc(c.title)}</div>
-      <div class="subtitle">${esc(c.subtitle)}</div>
+      <div class="plain">${esc(c.plain || c.subtitle || "")}</div>
     </div>
     <div class="body">${bodyHTML(c)}</div>`;
   return el;
@@ -191,15 +258,18 @@ function colCard(c) {
 
 function bodyHTML(c) {
   if (c._state === "idle")
-    return `<div class="answer ph">Press Run to see this chapter's answer.</div>`;
+    return `<div class="answer ph">Press Run to see this version's answer.</div>`;
+  if (c._state === "queued")
+    return `<div class="queued">waiting…</div>`;
   if (c._state === "loading")
-    return `<div class="running"><span class="shimmer" style="width:120px"></span> running…</div>
+    return `<div class="running"><span class="shimmer" style="width:110px"></span> thinking…</div>
             <div class="shimmer" style="width:90%"></div><div class="shimmer" style="width:70%"></div>`;
   if (c.error)
     return `<div class="banner err">⚠ ${esc(c.error)}</div>`;
 
   let html = "";
-  if (c.fellback) html += `<div class="banner fell">↻ ${esc(c.note || "captured run")}</div>`;
+  // Only flag a fallback when a *live* mode fell back — in Replay it's expected, not a surprise.
+  if (c.fellback && state.mode !== "replay") html += `<div class="banner fell">↻ ${esc(c.note || "captured run")}</div>`;
   html += `<div class="answer">${esc(c.answer || "—")}</div>`;
   if (c.sql)
     html += `<div><div class="sql-label">SQL it wrote</div><pre class="sql">${esc(c.sql)}</pre></div>`;
@@ -229,29 +299,33 @@ async function getColumn(question, mode, columnId) {
       body: JSON.stringify({ question, mode, column: columnId }),
     }).then(r => r.json());
   }
-  // Static replay: read from the captured file.
   const cols = (state.runs.runs || {})[question] || [];
   const found = cols.find(x => x.id === columnId);
-  return found || { id: columnId, error: "no captured run for this question" };
+  return found || { id: columnId, error: "no recorded run for this question — switch to a live mode to ask it" };
 }
 
-async function run() {
-  const q = (document.getElementById("qinput").value.trim()) || document.getElementById("qpick").value;
+function setBody(id, c) { document.getElementById("col-" + id).querySelector(".body").innerHTML = bodyHTML(c); }
+function setActive(id, on) { document.getElementById("col-" + id).classList.toggle("active", on); }
+
+async function run(qOverride) {
+  const q = (qOverride != null ? qOverride : document.getElementById("qinput").value.trim());
   if (!q) return;
   const btn = document.getElementById("runbtn"); btn.disabled = true;
-  document.getElementById("status").textContent = `Running "${q}" — ${MODE_LABEL[state.mode]}`;
 
-  const cols = state.columns.map(c => ({ ...c, _state: "loading" }));
+  // Reveal one by one — you watch the answer improve across versions.
+  const cols = state.columns.map(c => ({ ...c, _state: "queued" }));
   renderColumns(cols);
 
-  // Fire every column in parallel — each fills in as its agent finishes.
-  await Promise.all(state.columns.map(async (c, i) => {
+  for (let i = 0; i < state.columns.length; i++) {
+    const c = state.columns[i];
+    cols[i] = { ...cols[i], _state: "loading" };
+    setActive(c.id, true); setBody(c.id, cols[i]);
+    document.getElementById("status").textContent = `“${q}” — ${MODE_LABEL[state.mode]} · running ${c.title}…`;
     const payload = await getColumn(q, state.mode, c.id).catch(e => ({ id: c.id, error: String(e) }));
     cols[i] = { ...cols[i], ...payload, _state: "done" };
-    document.getElementById("col-" + c.id).querySelector(".body").innerHTML = bodyHTML(cols[i]);
-  }));
-
-  document.getElementById("status").textContent = `Done — "${q}"`;
+    setActive(c.id, false); setBody(c.id, cols[i]);
+  }
+  document.getElementById("status").textContent = `Done — “${q}”. Try another, or edit it above.`;
   btn.disabled = false;
 }
 
@@ -260,7 +334,7 @@ function esc(s) {
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
 }
 
-document.getElementById("runbtn").onclick = run;
+document.getElementById("runbtn").onclick = () => run();
 document.getElementById("qinput").addEventListener("keydown", e => { if (e.key === "Enter") run(); });
 init();
 </script>

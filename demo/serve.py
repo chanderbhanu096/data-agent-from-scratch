@@ -119,10 +119,9 @@ class Handler(BaseHTTPRequestHandler):
                 {
                     "modes": available_modes(),
                     "questions": spine.demo_questions(),
-                    "columns": [
-                        {k: c[k] for k in ("id", "chapter", "title", "subtitle")}
-                        for c in spine.COLUMNS
-                    ],
+                    "examples": spine.examples(),
+                    "dataset": spine.DATASET,
+                    "columns": spine.public_columns(),
                 }
             )
             return
