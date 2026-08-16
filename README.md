@@ -328,6 +328,7 @@ Each chapter adds one capability to the same system and keeps the change small e
 | 11 | Multi-turn conversation memory |
 | 12 | Step-level tracing and run receipts |
 | 13 | LSA, pretrained and API embeddings |
+| 14 | MCP: tools served from a separate process over JSON-RPC |
 
 The chapter implementations and their individual explanations live under [`chapters/`](chapters/).
 
@@ -355,7 +356,8 @@ data-agent-from-scratch/
 │   ├── 10_few_shot/
 │   ├── 11_conversation/
 │   ├── 12_tracing/
-│   └── 13_embeddings/
+│   ├── 13_embeddings/
+│   └── 14_mcp/
 │
 ├── dataagent/
 ├── demo/
