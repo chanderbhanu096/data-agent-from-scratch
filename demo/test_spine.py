@@ -32,8 +32,14 @@ def test_settings_for_maps_modes_to_providers():
     assert spine.settings_for("local").provider == "ollama"
 
 
-def test_columns_are_the_three_chapters_in_order():
-    assert spine.COLUMN_IDS == ["ch05", "ch06", "ch08"]
+def test_columns_are_the_runnable_chapters_in_order():
+    assert spine.COLUMN_IDS == ["ch05", "ch06", "ch08", "ch10"]
+
+
+def test_every_chapter_is_listed_and_the_runnable_ones_are_flagged():
+    chapters = spine.public_chapters()
+    assert [c["n"] for c in chapters] == [f"{n:02d}" for n in range(1, 17)]
+    assert [c["n"] for c in chapters if c["live"]] == ["05", "06", "08", "10"]
 
 
 def test_replay_returns_captured_columns_or_none():

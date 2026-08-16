@@ -48,7 +48,7 @@ Text-to-SQL is useful here because most behavior is objectively testable. A gene
 
 ## See the agent change as the engineering changes
 
-The demo runs the same question through three versions of the agent side by side: the plain loop, plan/verify/repair, and schema retrieval.
+The demo runs the same question through four versions of the agent, one after another: the plain loop, plan/verify/repair, schema retrieval, and retrieved few-shot examples.
 
 [![Data Agent demo comparison](assets/demo-comparison.png)](https://data-agent-live-demo.azurewebsites.net)
 
@@ -264,11 +264,11 @@ JSONL keeps the result easy to grep, diff, replay, or load into a dataframe late
 
 [`demo/index.html`](demo/index.html) uses the browser's [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) to ask the local server which execution modes are available. If there is no backend, the page loads captured runs instead.
 
-The three comparison columns execute concurrently with [`Promise.all()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all), so each result can appear as its agent finishes.
+The comparison rows run in sequence and fill in top to bottom, so you watch the answer change from one chapter to the next instead of four results landing at once.
 
 The UI is deliberately framework-free and uses standard browser features:
 
-- [CSS Grid](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout) for the three-column comparison
+- [CSS Grid](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout) for the comparison rows
 - [media queries](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_media_queries/Using_media_queries) for the mobile layout
 - [`@keyframes`](https://developer.mozilla.org/en-US/docs/Web/CSS/@keyframes) for loading states
 - [`aria-pressed`](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-pressed) for accessible mode toggles

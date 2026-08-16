@@ -9,14 +9,20 @@ python demo/serve.py          # run it locally too — then open http://localhos
 Deploy your own copy of the live backend with [`deploy_backend_azure.sh`](deploy_backend_azure.sh);
 the lighter static-replay-only option is [`deploy_azure.sh`](deploy_azure.sh).
 
-Type one question. It runs through **three real chapter agents side by side**, so you *see*
+Type one question. It runs through **four real chapter agents, one after another**, so you *see*
 what each capability adds:
 
-| Column | Chapter | What it demonstrates |
+| Row | Chapter | What it demonstrates |
 |--------|---------|----------------------|
 | Plain loop | 05 | the raw think→act→observe loop |
 | Plan · verify · repair | 06 | checks its own SQL; **refuses the unanswerable** instead of inventing |
 | Schema retrieval | 08 | finds the right table out of a 253-table catalog |
+| Few-shot examples | 10 | retrieves worked examples into the prompt before writing SQL |
+
+Only chapters exposing the same `run_agent(llm, question, on_step=...)` seam can be a row.
+Chapter 09 (routing) fits the seam but is left out on purpose: its cheap tier is a local
+Ollama the hosted demo can't reach, so it would fall back every time instead of showing
+anything. The remaining chapters are linked from the page footer.
 
 Under every answer are the **receipts from [Chapter 12](../chapters/12_tracing/)** — steps, tokens,
 cost, and `grounded`. These are genuine runs. There is no mock-up.
@@ -68,7 +74,7 @@ folder and you'll see nothing.
 ```
 demo/
   serve.py     stdlib HTTP server — routes only; the agents do the work
-  spine.py     read-only orchestrator: one question → three real columns + tracer receipts
+  spine.py     read-only orchestrator: one question → four real agent rows + tracer receipts
   capture.py   record real runs → data/runs.json (the replay source)
   index.html   one self-contained page; live via serve.py, static via data/runs.json
   data/runs.json   captured real runs (committed, so the hosted demo works with no key)

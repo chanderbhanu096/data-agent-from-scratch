@@ -49,6 +49,7 @@ def _load_chapter(folder: str, modname: str):
 _ch05 = _load_chapter("05_agent_loop", "demo_ch05")
 _ch06 = _load_chapter("06_plan_and_verify", "demo_ch06")
 _ch08 = _load_chapter("08_schema_retrieval", "demo_ch08")
+_ch10 = _load_chapter("10_few_shot", "demo_ch10")
 
 
 def _run_05(llm: LLM, q: str, tr: Tracer):
@@ -61,6 +62,15 @@ def _run_06(llm: LLM, q: str, tr: Tracer):
 
 def _run_08(llm: LLM, q: str, tr: Tracer):
     return _ch08.run_agent(llm, q, on_step=tr)
+
+
+def _run_10(llm: LLM, q: str, tr: Tracer):
+    return _ch10.run_agent(llm, q, on_step=tr)
+
+
+# ponytail: chapter 09 (routing) is deliberately not a column — its cheap tier is a
+# local Ollama, which the hosted demo has no access to, so it would fall back every
+# time instead of showing anything. It stays a link like the other build-up chapters.
 
 
 _REPO_ROOT = "https://github.com/chanderbhanu096/data-agent-from-scratch"
@@ -126,6 +136,15 @@ COLUMNS: list[dict[str, Any]] = [
         "plain": "Finds the right tables first, so it still works when the schema is huge.",
         "link": f"{_REPO}/08_schema_retrieval",
         "run": _run_08,
+    },
+    {
+        "id": "ch10",
+        "chapter": "10",
+        "title": "Few-shot examples",
+        "subtitle": "worked examples retrieved into the prompt",
+        "plain": "Studies similar solved questions first, then writes the SQL.",
+        "link": f"{_REPO}/10_few_shot",
+        "run": _run_10,
     },
 ]
 COLUMN_IDS = [c["id"] for c in COLUMNS]
@@ -208,7 +227,10 @@ def demo_questions() -> list[str]:
 # can't answer a click.
 _EXAMPLE_NOTES = {
     "Who is the highest-earning driver?": {
-        "note": "a trick — this data has no drivers; watch them disagree",
+        # The model behind this moves; what stays true is that they handle the
+        # unanswerable question *differently*, and the badges show which ones
+        # backed their refusal with an actual query.
+        "note": "a trick — this data has no drivers; watch how differently they handle it",
         "trap": True,
     },
 }
