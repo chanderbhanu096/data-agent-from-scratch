@@ -106,7 +106,9 @@ def show_normal_still_works() -> None:
 
 
 def main() -> None:
-    console.print("[bold cyan]Guardrails — safety lives at the door, not in the prompt[/bold cyan]\n")
+    console.print(
+        "[bold cyan]Guardrails — safety lives at the door, not in the prompt[/bold cyan]\n"
+    )
     show_blocked()
     show_compute_bomb()
     show_row_flood()

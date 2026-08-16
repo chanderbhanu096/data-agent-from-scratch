@@ -24,7 +24,7 @@ running total:
 llm = LLM(settings)
 tracer = Tracer(llm)
 result = run_agent(llm, question, tools=TOOLS, system=..., on_step=tracer)
-save_jsonl(trace_record(question, result, tracer, ...), path)   # one run → one line
+save_jsonl(trace_record(question, result, tracer, ...), path)  # one run → one line
 ```
 
 > The cost of a step is the *change* in the total between steps — not a new counter threaded

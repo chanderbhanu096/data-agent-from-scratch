@@ -287,9 +287,7 @@ class LLM:
         # Azure's newer models on the v1 surface reject the legacy `max_tokens`
         # and require `max_completion_tokens`. The public OpenAI API accepts both,
         # but we only switch where we must, to leave the openai path untouched.
-        token_param = (
-            "max_completion_tokens" if self.settings.provider == "azure" else "max_tokens"
-        )
+        token_param = "max_completion_tokens" if self.settings.provider == "azure" else "max_tokens"
         kwargs: dict[str, Any] = {
             "model": self.model,
             token_param: max_tokens,
@@ -552,11 +550,7 @@ def missing_credentials(settings: Settings) -> str | None:
     if settings.provider == "openai" and not os.getenv("OPENAI_API_KEY"):
         return "OPENAI_API_KEY is not set. Add it to .env, or set DATAAGENT_PROVIDER=ollama."
     if settings.provider == "azure":
-        missing = [
-            v
-            for v in ("AZURE_OPENAI_ENDPOINT", "AZURE_OPENAI_API_KEY")
-            if not os.getenv(v)
-        ]
+        missing = [v for v in ("AZURE_OPENAI_ENDPOINT", "AZURE_OPENAI_API_KEY") if not os.getenv(v)]
         if missing:
             return (
                 f"{' and '.join(missing)} not set. Add AZURE_OPENAI_ENDPOINT, "

@@ -79,9 +79,7 @@ def warehouse_cards() -> list[TableCard]:
                     [table],
                 ).fetchall()
             ]
-            cards.append(
-                TableCard(table, cols, _WAREHOUSE_DESCRIPTIONS.get(table, ""))
-            )
+            cards.append(TableCard(table, cols, _WAREHOUSE_DESCRIPTIONS.get(table, "")))
         return cards
     finally:
         con.close()
@@ -92,21 +90,81 @@ def warehouse_cards() -> list[TableCard]:
 # (HR, finance, CRM, logistics…) that share no vocabulary with taxi questions, so
 # a correct retrieval is a real signal and not luck.
 _DECOY_DOMAINS = {
-    "hr": (["employee", "manager", "department", "payroll", "leave", "benefit",
-            "role", "review", "candidate", "onboarding"],
-           ["id", "employee_id", "name", "email", "hired_at", "salary", "status"]),
-    "finance": (["invoice", "ledger", "budget", "expense", "vendor", "purchase",
-                 "account", "tax_filing", "asset", "depreciation"],
-                ["id", "amount", "currency", "issued_at", "due_at", "status", "account_id"]),
-    "crm": (["lead", "opportunity", "contact", "campaign", "ticket", "subscription",
-             "churn", "nps_survey", "quote", "renewal"],
-            ["id", "customer_id", "stage", "created_at", "owner", "value", "source"]),
-    "logistics": (["warehouse", "shipment", "inventory", "supplier", "carrier",
-                   "return", "pallet", "route_plan", "dock", "restock"],
-                  ["id", "sku", "quantity", "location", "shipped_at", "carrier_id", "status"]),
-    "product": (["feature_flag", "release", "experiment", "usage_event", "session",
-                 "device", "app_version", "crash_report", "cohort", "funnel"],
-                ["id", "user_id", "flag", "created_at", "platform", "value", "variant"]),
+    "hr": (
+        [
+            "employee",
+            "manager",
+            "department",
+            "payroll",
+            "leave",
+            "benefit",
+            "role",
+            "review",
+            "candidate",
+            "onboarding",
+        ],
+        ["id", "employee_id", "name", "email", "hired_at", "salary", "status"],
+    ),
+    "finance": (
+        [
+            "invoice",
+            "ledger",
+            "budget",
+            "expense",
+            "vendor",
+            "purchase",
+            "account",
+            "tax_filing",
+            "asset",
+            "depreciation",
+        ],
+        ["id", "amount", "currency", "issued_at", "due_at", "status", "account_id"],
+    ),
+    "crm": (
+        [
+            "lead",
+            "opportunity",
+            "contact",
+            "campaign",
+            "ticket",
+            "subscription",
+            "churn",
+            "nps_survey",
+            "quote",
+            "renewal",
+        ],
+        ["id", "customer_id", "stage", "created_at", "owner", "value", "source"],
+    ),
+    "logistics": (
+        [
+            "warehouse",
+            "shipment",
+            "inventory",
+            "supplier",
+            "carrier",
+            "return",
+            "pallet",
+            "route_plan",
+            "dock",
+            "restock",
+        ],
+        ["id", "sku", "quantity", "location", "shipped_at", "carrier_id", "status"],
+    ),
+    "product": (
+        [
+            "feature_flag",
+            "release",
+            "experiment",
+            "usage_event",
+            "session",
+            "device",
+            "app_version",
+            "crash_report",
+            "cohort",
+            "funnel",
+        ],
+        ["id", "user_id", "flag", "created_at", "platform", "value", "variant"],
+    ),
 }
 
 
@@ -183,9 +241,7 @@ class Bm25:
         return total
 
     def top_k(self, query: str, k: int = 5) -> list[tuple[TableCard, float]]:
-        scored = [
-            (self.cards[i], self.score(query, i)) for i in range(len(self.cards))
-        ]
+        scored = [(self.cards[i], self.score(query, i)) for i in range(len(self.cards))]
         scored = [pair for pair in scored if pair[1] > 0]
         scored.sort(key=lambda p: p[1], reverse=True)
         return scored[:k]

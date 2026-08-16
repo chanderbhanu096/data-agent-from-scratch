@@ -83,7 +83,9 @@ def run_agent(
 
 # ── The demo: what gets retrieved for a hard question ─────────────────────────
 
-DEMO_QUESTION = "Which borough has the highest average tip? Ignore boroughs with fewer than 1000 trips."
+DEMO_QUESTION = (
+    "Which borough has the highest average tip? Ignore boroughs with fewer than 1000 trips."
+)
 
 
 def main() -> None:

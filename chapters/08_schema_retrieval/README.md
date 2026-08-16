@@ -22,8 +22,8 @@ change is the schema it's handed.
 ## The seam: retrieve, then prompt
 
 ```python
-retrieved = retrieve(question, full_catalog(), k)          # score 253 tables, keep the top few
-system    = build_system_prompt(schema=render_for_prompt(retrieved))
+retrieved = retrieve(question, full_catalog(), k)  # score 253 tables, keep the top few
+system = build_system_prompt(schema=render_for_prompt(retrieved))
 return run_agent(llm, question, tools=TOOLS, system=system)  # Chapter 05, unchanged
 ```
 

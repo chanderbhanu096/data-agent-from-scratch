@@ -104,7 +104,9 @@ def main() -> None:
         question, result, tracer, provider=settings.provider, model=settings.model
     )
     save_jsonl(record, _TRACE_PATH)
-    console.print(f"\n  [dim]appended to {_TRACE_PATH.name} — {len(load_jsonl(_TRACE_PATH))} run(s) on file[/dim]")
+    console.print(
+        f"\n  [dim]appended to {_TRACE_PATH.name} — {len(load_jsonl(_TRACE_PATH))} run(s) on file[/dim]"
+    )
     console.print(
         "  [dim]that file is the point: an answer you can reopen, grep, and diff — "
         "not one you have to trust.[/dim]"

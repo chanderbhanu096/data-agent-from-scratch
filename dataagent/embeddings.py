@@ -154,9 +154,7 @@ class ModelEmbedder:
         return self
 
     def encode(self, texts: list[str]) -> np.ndarray:
-        vecs = self._load().encode(
-            texts, normalize_embeddings=True, show_progress_bar=False
-        )
+        vecs = self._load().encode(texts, normalize_embeddings=True, show_progress_bar=False)
         return np.asarray(vecs, dtype=np.float64)
 
 

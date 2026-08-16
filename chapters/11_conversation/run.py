@@ -59,8 +59,8 @@ def render_history(turns: list[tuple[str, str]]) -> str:
         lines.append(f'  User asked: "{question}"')
         lines.append(f"  You answered: {answer}")
     lines.append(
-        "\nIf the new question is a follow-up (\"and for Queens?\", \"what about those?\", "
-        "\"only the long ones\"), first rewrite it into a complete, standalone question using "
+        '\nIf the new question is a follow-up ("and for Queens?", "what about those?", '
+        '"only the long ones"), first rewrite it into a complete, standalone question using '
         "the conversation above, then answer that."
     )
     return "\n".join(lines)
@@ -117,7 +117,9 @@ def main() -> None:
 
     if missing_credentials(settings):
         console.print("[yellow]Set a provider in .env to run the dialogue.[/yellow]")
-        console.print("This chapter needs a model — the follow-ups are resolved by it, not by rules.")
+        console.print(
+            "This chapter needs a model — the follow-ups are resolved by it, not by rules."
+        )
         return
 
     # A live two-turn dialogue, so you can watch the follow-up resolve.

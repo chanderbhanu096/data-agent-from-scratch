@@ -72,9 +72,7 @@ class Tracer:
         self._last_t = now
 
 
-def trace_record(
-    question: str, result: Any, tracer: Tracer, *, provider: str, model: str
-) -> dict:
+def trace_record(question: str, result: Any, tracer: Tracer, *, provider: str, model: str) -> dict:
     """A full run as one serialisable dict — the line that gets saved."""
     return {
         "question": question,

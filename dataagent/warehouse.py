@@ -95,9 +95,7 @@ def assert_safe(sql: str) -> None:
         raise UnsafeSQL(f"{match.group(0).upper()} is not allowed — this agent is read-only.")
 
 
-def run_sql(
-    sql: str, row_limit: int = 1000, timeout_s: float | None = None
-) -> QueryResult:
+def run_sql(sql: str, row_limit: int = 1000, timeout_s: float | None = None) -> QueryResult:
     """Validate, cap, execute. The only path from agent to database.
 
     `timeout_s` bounds *compute*, not just output. The row limit caps how many
@@ -119,9 +117,7 @@ def run_sql(
         truncated = len(rows) > row_limit
         return QueryResult(columns, rows[:row_limit], truncated)
     except duckdb.InterruptException:
-        raise QueryTimeout(
-            f"Query exceeded its {timeout_s:g}s budget and was cancelled."
-        ) from None
+        raise QueryTimeout(f"Query exceeded its {timeout_s:g}s budget and was cancelled.") from None
     finally:
         if watchdog is not None:
             watchdog.cancel()
@@ -137,9 +133,7 @@ def run_sql(
 _ENUM_MAX_DISTINCT = 16
 
 
-def _value_hints(
-    con: duckdb.DuckDBPyConnection, table: str, column: str
-) -> str | None:
+def _value_hints(con: duckdb.DuckDBPyConnection, table: str, column: str) -> str | None:
     """Return `column in (...)` if the column is a small enum, else None.
 
     We fetch one more value than the cap and bail the moment we exceed it, so
@@ -156,9 +150,7 @@ def _value_hints(
     # distinct floats that happens to be short is noise, not vocabulary.
     if any(isinstance(v, float) for v in values):
         return None
-    rendered = ", ".join(
-        f"'{v}'" if isinstance(v, str) else str(v) for v in values
-    )
+    rendered = ", ".join(f"'{v}'" if isinstance(v, str) else str(v) for v in values)
     return f"{column} in ({rendered})"
 
 
@@ -193,11 +185,7 @@ def schema_text(only: list[str] | None = None) -> str:
             body = ",\n".join(f"  {c} {t}" for c, t in cols)
             block = f"CREATE TABLE {table} (  -- {n:,} rows\n{body}\n);"
 
-            hints = [
-                hint
-                for c, _ in cols
-                if (hint := _value_hints(con, table, c)) is not None
-            ]
+            hints = [hint for c, _ in cols if (hint := _value_hints(con, table, c)) is not None]
             if hints:
                 block += "\n-- values: " + "; ".join(hints)
             blocks.append(block)

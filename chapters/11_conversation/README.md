@@ -21,9 +21,9 @@ remember:
 
 ```python
 def ask(self, question):
-    system = build_system_prompt() + render_history(self.turns)   # the dialogue so far
+    system = build_system_prompt() + render_history(self.turns)  # the dialogue so far
     result = run_agent(self.llm, question, tools=TOOLS, system=system)
-    self.turns.append((question, result.answer))                  # remember Q and A, nothing else
+    self.turns.append((question, result.answer))  # remember Q and A, nothing else
     return result
 ```
 

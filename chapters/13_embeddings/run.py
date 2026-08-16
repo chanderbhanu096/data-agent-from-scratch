@@ -147,8 +147,12 @@ def main() -> None:
 
     # Make it concrete: a pure-paraphrase question, top-3 per available method.
     demo_q = "expensive rides"
-    console.print(f'\n[bold]Top-3 for a word-free paraphrase:[/bold] "{demo_q}" [dim](answer: trips)[/dim]')
-    console.print(f"  [cyan]bm25[/cyan]  {_bm25_ranking(bm, demo_q, 3) or '[dim](nothing scored > 0)[/dim]'}")
+    console.print(
+        f'\n[bold]Top-3 for a word-free paraphrase:[/bold] "{demo_q}" [dim](answer: trips)[/dim]'
+    )
+    console.print(
+        f"  [cyan]bm25[/cyan]  {_bm25_ranking(bm, demo_q, 3) or '[dim](nothing scored > 0)[/dim]'}"
+    )
     for name, index, _note in embedders:
         if index is not None:
             console.print(f"  [cyan]{name:<5}[/cyan] {_semantic_ranking(index, demo_q, 3)}")

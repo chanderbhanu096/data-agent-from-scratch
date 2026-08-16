@@ -87,7 +87,9 @@ def resolve_column(question: str, mode: str, column_id: str) -> dict:
 
     payload = spine.run_column(column_id, question, mode)
     if payload.get("error") and _looks_like_outage(payload["error"]):
-        return _fallback(question, column_id, f"{mode.capitalize()} run failed ({payload['error']})")
+        return _fallback(
+            question, column_id, f"{mode.capitalize()} run failed ({payload['error']})"
+        )
     return payload
 
 
@@ -147,7 +149,9 @@ class Handler(BaseHTTPRequestHandler):
 def main() -> None:
     modes = available_modes()
     print("Data Agent — live demo")
-    print(f"  modes available: {', '.join(m for m, ok in modes.items() if ok) or 'none (capture some runs first)'}")
+    print(
+        f"  modes available: {', '.join(m for m, ok in modes.items() if ok) or 'none (capture some runs first)'}"
+    )
     print(f"  open http://localhost:{PORT}")
     ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
 

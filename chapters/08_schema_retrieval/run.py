@@ -120,8 +120,7 @@ def show_retrieval() -> None:
     for q in DEMO_QUESTIONS:
         picked = retrieve(q, catalog, k=RETRIEVED_K)
         names = [
-            f"[green]{c.name}[/green]" if c.name in real else f"[dim]{c.name}[/dim]"
-            for c in picked
+            f"[green]{c.name}[/green]" if c.name in real else f"[dim]{c.name}[/dim]" for c in picked
         ]
         console.print(f"  [cyan]Q[/cyan] {q}")
         console.print(f"     → {', '.join(names) or '[red](nothing scored)[/red]'}")
@@ -134,7 +133,9 @@ def show_the_seam() -> None:
 
 
 def main() -> None:
-    console.print("[bold cyan]Schema retrieval — the schema is too big, so fetch the relevant slice[/bold cyan]\n")
+    console.print(
+        "[bold cyan]Schema retrieval — the schema is too big, so fetch the relevant slice[/bold cyan]\n"
+    )
     show_haystack()
     show_retrieval()
     show_the_seam()

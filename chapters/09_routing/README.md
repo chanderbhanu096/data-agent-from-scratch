@@ -19,10 +19,10 @@ loop; the only new thing is which model runs it.
 ## The router reads the question, never the data
 
 ```python
-if _THRESHOLD.search(question):   # "at least 500 trips", "ignore boroughs under 1000"
-    score += 2                    # the constraint weak models silently drop
+if _THRESHOLD.search(question):  # "at least 500 trips", "ignore boroughs under 1000"
+    score += 2  # the constraint weak models silently drop
 if _RANKING.search(question) and _AGGREGATE.search(question):
-    score += 2                    # group, aggregate, then order — where 3B models fumble
+    score += 2  # group, aggregate, then order — where 3B models fumble
 ...
 tier = "strong" if score >= ESCALATE_AT else "cheap"
 ```

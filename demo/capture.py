@@ -59,7 +59,9 @@ def main() -> None:
     }
     spine.DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
     spine.DATA_PATH.write_text(json.dumps(out, indent=2))
-    print(f"\nwrote {spine.DATA_PATH.relative_to(HERE.parent)} — {len(questions)} questions x {len(columns)} columns")
+    print(
+        f"\nwrote {spine.DATA_PATH.relative_to(HERE.parent)} — {len(questions)} questions x {len(columns)} columns"
+    )
 
 
 if __name__ == "__main__":

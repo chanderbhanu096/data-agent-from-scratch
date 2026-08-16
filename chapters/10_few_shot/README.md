@@ -16,9 +16,9 @@ It's the same move as Chapter 08, one layer over: BM25, but the corpus is a libr
 question→SQL pairs instead of tables.
 
 ```python
-examples = retrieve_examples(question, k=3)              # BM25 over solved Q→SQL pairs
-system   = build_system_prompt() + render_examples(examples)
-return run_agent(llm, question, tools=TOOLS, system=system)   # Chapter 05, unchanged
+examples = retrieve_examples(question, k=3)  # BM25 over solved Q→SQL pairs
+system = build_system_prompt() + render_examples(examples)
+return run_agent(llm, question, tools=TOOLS, system=system)  # Chapter 05, unchanged
 ```
 
 ## The honesty that makes the number mean something

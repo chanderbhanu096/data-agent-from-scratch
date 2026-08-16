@@ -42,10 +42,10 @@ class Requirements(BaseModel):
     metric: str
     grouping: str | None
     filters: list[str]
-    min_count: int | None      # ← the one that gets dropped
+    min_count: int | None  # ← the one that gets dropped
     sort: str | None
     limit: int | None
-    answerable: bool           # ← the one that stops a confident hallucination
+    answerable: bool  # ← the one that stops a confident hallucination
 ```
 
 A dropped constraint is now a **missing field**, not a subtlety buried in a sentence.

@@ -60,7 +60,9 @@ def cheap_settings() -> Settings:
     base = load_settings()
     provider = os.getenv("ROUTER_CHEAP_PROVIDER", "ollama")
     model = os.getenv("ROUTER_CHEAP_MODEL", "qwen2.5:3b")
-    base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434") if provider == "ollama" else None
+    base_url = (
+        os.getenv("OLLAMA_BASE_URL", "http://localhost:11434") if provider == "ollama" else None
+    )
     return Settings(
         provider=provider,
         model=model,

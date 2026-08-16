@@ -19,14 +19,18 @@ def test_a_single_average_goes_cheap():
 
 
 def test_a_threshold_escalates():
-    d = route("Which borough has the highest average tip? Ignore boroughs with fewer than 1000 trips.")
+    d = route(
+        "Which borough has the highest average tip? Ignore boroughs with fewer than 1000 trips."
+    )
     assert d.tier == "strong"
     assert d.score >= ESCALATE_AT
     assert any("threshold" in r for r in d.reasons)
 
 
 def test_a_ranked_aggregate_escalates():
-    d = route("Which pickup zone has the highest average total fare, among zones with at least 500 trips?")
+    d = route(
+        "Which pickup zone has the highest average total fare, among zones with at least 500 trips?"
+    )
     assert d.tier == "strong"
     assert any("ranked aggregate" in r for r in d.reasons)
 

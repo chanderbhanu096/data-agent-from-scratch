@@ -146,12 +146,7 @@ def _normalize(text: str) -> str:
     refusals as failures — the eval must not be defeated by a curly quote.
     """
     return (
-        (text or "")
-        .replace("’", "'")
-        .replace("‘", "'")
-        .replace("“", '"')
-        .replace("”", '"')
-        .lower()
+        (text or "").replace("’", "'").replace("‘", "'").replace("“", '"').replace("”", '"').lower()
     )
 
 
