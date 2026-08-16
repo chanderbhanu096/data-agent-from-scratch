@@ -1,0 +1,11 @@
+LocationID,Borough,Zone,service_zone
+7,Queens,Astoria,Boro Zone
+33,Brooklyn,Brooklyn Heights,Boro Zone
+61,Brooklyn,Crown Heights North,Boro Zone
+100,Manhattan,Garment District,Yellow Zone
+132,Queens,JFK Airport,Airports
+138,Queens,LaGuardia Airport,Airports
+142,Manhattan,Lincoln Square East,Yellow Zone
+145,Queens,Long Island City/Hunters Point,Boro Zone
+161,Manhattan,Midtown Center,Yellow Zone
+236,Manhattan,Upper East Side North,Yellow Zone
