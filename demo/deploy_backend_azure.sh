@@ -38,15 +38,31 @@ echo "→ web app $APP (Python 3.11)"
 az webapp create -n "$APP" -g "$RG" -p "$PLAN" --runtime "PYTHON:3.11" -o none
 
 echo "→ app settings (creds from .env, server-side)"
-set -a; source <(grep -E '^(DATAAGENT_PROVIDER|AZURE_OPENAI_ENDPOINT|AZURE_OPENAI_API_KEY|AZURE_OPENAI_DEPLOYMENT)=' .env); set +a
-az webapp config appsettings set -n "$APP" -g "$RG" --settings \
-  DATAAGENT_PROVIDER="${DATAAGENT_PROVIDER:-azure}" \
-  AZURE_OPENAI_ENDPOINT="$AZURE_OPENAI_ENDPOINT" \
-  AZURE_OPENAI_API_KEY="$AZURE_OPENAI_API_KEY" \
-  AZURE_OPENAI_DEPLOYMENT="$AZURE_OPENAI_DEPLOYMENT" \
-  DEMO_DISABLE_LOCAL=1 \
-  SCM_DO_BUILD_DURING_DEPLOYMENT=true \
-  -o none
+# Read KEY=VALUE literally, never `source` — a stray non-ASCII or special char in a
+# secret must not execute or abort the parse. Split on the first '=' only (keys can
+# end in '=='), strip one layer of quotes. Plain vars, so it runs on macOS bash 3.2.
+DAP="" AOE="" AOK="" AOD=""
+while IFS='=' read -r k v; do
+  v="${v%\"}"; v="${v#\"}"
+  case "$k" in
+    DATAAGENT_PROVIDER) DAP="$v" ;;
+    AZURE_OPENAI_ENDPOINT) AOE="$v" ;;
+    AZURE_OPENAI_API_KEY) AOK="$v" ;;
+    AZURE_OPENAI_DEPLOYMENT) AOD="$v" ;;
+  esac
+done < .env
+if [ -n "$AOE" ] && [ -n "$AOK" ]; then
+  az webapp config appsettings set -n "$APP" -g "$RG" --settings \
+    DATAAGENT_PROVIDER="${DAP:-azure}" \
+    AZURE_OPENAI_ENDPOINT="$AOE" \
+    AZURE_OPENAI_API_KEY="$AOK" \
+    AZURE_OPENAI_DEPLOYMENT="$AOD" \
+    DEMO_DISABLE_LOCAL=1 \
+    SCM_DO_BUILD_DURING_DEPLOYMENT=true \
+    -o none
+else
+  echo "  couldn't read creds from .env — leaving the app's existing settings in place"
+fi
 
 echo "→ startup command"
 az webapp config set -n "$APP" -g "$RG" --startup-file "python demo/serve.py" -o none
