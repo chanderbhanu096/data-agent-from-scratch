@@ -13,3 +13,7 @@ __pycache__/
 # Local implementation tracker — not part of the public history
 docs/session-log.md
 chapters/12_tracing/traces.jsonl
+
+# Chapter 16 builds the sample DB and its ER diagram on demand
+chapters/16_your_database/sample_shop.sqlite
+chapters/16_your_database/sample_shop.mmd

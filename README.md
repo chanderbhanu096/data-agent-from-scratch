@@ -330,6 +330,7 @@ Each chapter adds one capability to the same system and keeps the change small e
 | 13 | LSA, pretrained and API embeddings |
 | 14 | MCP: tools served from a separate process over JSON-RPC |
 | 15 | MCP: connecting the agent to a server you didn't write |
+| 16 | Query your own database: schema + ER diagram from SQLite |
 
 The chapter implementations and their individual explanations live under [`chapters/`](chapters/).
 
@@ -359,7 +360,8 @@ data-agent-from-scratch/
 │   ├── 12_tracing/
 │   ├── 13_embeddings/
 │   ├── 14_mcp/
-│   └── 15_mcp_connect/
+│   ├── 15_mcp_connect/
+│   └── 16_your_database/
 │
 ├── dataagent/
 ├── demo/
