@@ -695,6 +695,121 @@
     "relationships": [
       "trips.pickup_zone_id / dropoff_zone_id \u2192 zones.zone_id",
       "trips.payment_type_id \u2192 payment_types.payment_type_id"
-    ]
-  }
+    ],
+    "explore": "https://github.com/chanderbhanu096/data-agent-from-scratch/blob/main/scripts/build_warehouse.py"
+  },
+  "chapters": [
+    {
+      "n": "01",
+      "title": "First model call",
+      "folder": "01_first_call",
+      "link": "https://github.com/chanderbhanu096/data-agent-from-scratch/tree/main/chapters/01_first_call",
+      "live": false
+    },
+    {
+      "n": "02",
+      "title": "Structured output",
+      "folder": "02_structured_output",
+      "link": "https://github.com/chanderbhanu096/data-agent-from-scratch/tree/main/chapters/02_structured_output",
+      "live": false
+    },
+    {
+      "n": "03",
+      "title": "Schema as context",
+      "folder": "03_schema_context",
+      "link": "https://github.com/chanderbhanu096/data-agent-from-scratch/tree/main/chapters/03_schema_context",
+      "live": false
+    },
+    {
+      "n": "04",
+      "title": "Tool calling",
+      "folder": "04_tool_calling",
+      "link": "https://github.com/chanderbhanu096/data-agent-from-scratch/tree/main/chapters/04_tool_calling",
+      "live": false
+    },
+    {
+      "n": "05",
+      "title": "Agent loop",
+      "folder": "05_agent_loop",
+      "link": "https://github.com/chanderbhanu096/data-agent-from-scratch/tree/main/chapters/05_agent_loop",
+      "live": true
+    },
+    {
+      "n": "06",
+      "title": "Plan \u00b7 verify \u00b7 repair",
+      "folder": "06_plan_and_verify",
+      "link": "https://github.com/chanderbhanu096/data-agent-from-scratch/tree/main/chapters/06_plan_and_verify",
+      "live": true
+    },
+    {
+      "n": "07",
+      "title": "Guardrails",
+      "folder": "07_guardrails",
+      "link": "https://github.com/chanderbhanu096/data-agent-from-scratch/tree/main/chapters/07_guardrails",
+      "live": false
+    },
+    {
+      "n": "08",
+      "title": "Schema retrieval",
+      "folder": "08_schema_retrieval",
+      "link": "https://github.com/chanderbhanu096/data-agent-from-scratch/tree/main/chapters/08_schema_retrieval",
+      "live": true
+    },
+    {
+      "n": "09",
+      "title": "Model routing",
+      "folder": "09_routing",
+      "link": "https://github.com/chanderbhanu096/data-agent-from-scratch/tree/main/chapters/09_routing",
+      "live": false
+    },
+    {
+      "n": "10",
+      "title": "Few-shot examples",
+      "folder": "10_few_shot",
+      "link": "https://github.com/chanderbhanu096/data-agent-from-scratch/tree/main/chapters/10_few_shot",
+      "live": false
+    },
+    {
+      "n": "11",
+      "title": "Conversation memory",
+      "folder": "11_conversation",
+      "link": "https://github.com/chanderbhanu096/data-agent-from-scratch/tree/main/chapters/11_conversation",
+      "live": false
+    },
+    {
+      "n": "12",
+      "title": "Tracing & receipts",
+      "folder": "12_tracing",
+      "link": "https://github.com/chanderbhanu096/data-agent-from-scratch/tree/main/chapters/12_tracing",
+      "live": false
+    },
+    {
+      "n": "13",
+      "title": "Embeddings",
+      "folder": "13_embeddings",
+      "link": "https://github.com/chanderbhanu096/data-agent-from-scratch/tree/main/chapters/13_embeddings",
+      "live": false
+    },
+    {
+      "n": "14",
+      "title": "MCP server",
+      "folder": "14_mcp",
+      "link": "https://github.com/chanderbhanu096/data-agent-from-scratch/tree/main/chapters/14_mcp",
+      "live": false
+    },
+    {
+      "n": "15",
+      "title": "MCP client",
+      "folder": "15_mcp_connect",
+      "link": "https://github.com/chanderbhanu096/data-agent-from-scratch/tree/main/chapters/15_mcp_connect",
+      "live": false
+    },
+    {
+      "n": "16",
+      "title": "Your own database",
+      "folder": "16_your_database",
+      "link": "https://github.com/chanderbhanu096/data-agent-from-scratch/tree/main/chapters/16_your_database",
+      "live": false
+    }
+  ]
 }

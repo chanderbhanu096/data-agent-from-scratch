@@ -56,6 +56,7 @@ def main() -> None:
         "questions": questions,
         "examples": spine.examples(),
         "dataset": spine.DATASET,
+        "chapters": spine.public_chapters(),
         "columns": columns,
         "runs": runs,
     }

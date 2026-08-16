@@ -122,6 +122,7 @@ class Handler(BaseHTTPRequestHandler):
                     "examples": spine.examples(),
                     "dataset": spine.DATASET,
                     "columns": spine.public_columns(),
+                    "chapters": spine.public_chapters(),
                 }
             )
             return

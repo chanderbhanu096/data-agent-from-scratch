@@ -63,7 +63,39 @@ def _run_08(llm: LLM, q: str, tr: Tracer):
     return _ch08.run_agent(llm, q, on_step=tr)
 
 
-_REPO = "https://github.com/chanderbhanu096/data-agent-from-scratch/tree/main/chapters"
+_REPO_ROOT = "https://github.com/chanderbhanu096/data-agent-from-scratch"
+_REPO = f"{_REPO_ROOT}/tree/main/chapters"
+
+# The whole curriculum, so a visitor sees the other 13 chapters exist without us
+# running them all live. Three of these (05/06/08) are the columns above; the rest
+# are one click to the code. Titles kept short on purpose — this is a map, not a ToC.
+CHAPTERS: list[dict[str, str]] = [
+    {"n": "01", "title": "First model call", "folder": "01_first_call"},
+    {"n": "02", "title": "Structured output", "folder": "02_structured_output"},
+    {"n": "03", "title": "Schema as context", "folder": "03_schema_context"},
+    {"n": "04", "title": "Tool calling", "folder": "04_tool_calling"},
+    {"n": "05", "title": "Agent loop", "folder": "05_agent_loop"},
+    {"n": "06", "title": "Plan · verify · repair", "folder": "06_plan_and_verify"},
+    {"n": "07", "title": "Guardrails", "folder": "07_guardrails"},
+    {"n": "08", "title": "Schema retrieval", "folder": "08_schema_retrieval"},
+    {"n": "09", "title": "Model routing", "folder": "09_routing"},
+    {"n": "10", "title": "Few-shot examples", "folder": "10_few_shot"},
+    {"n": "11", "title": "Conversation memory", "folder": "11_conversation"},
+    {"n": "12", "title": "Tracing & receipts", "folder": "12_tracing"},
+    {"n": "13", "title": "Embeddings", "folder": "13_embeddings"},
+    {"n": "14", "title": "MCP server", "folder": "14_mcp"},
+    {"n": "15", "title": "MCP client", "folder": "15_mcp_connect"},
+    {"n": "16", "title": "Your own database", "folder": "16_your_database"},
+]
+
+
+def public_chapters() -> list[dict[str, Any]]:
+    """All chapters with their code links and a flag for the ones shown live above."""
+    live = set(COLUMN_IDS)
+    return [
+        {**c, "link": f"{_REPO}/{c['folder']}", "live": f"ch{c['n']}" in live}
+        for c in CHAPTERS
+    ]
 
 # The demo spine: one column per capability, left → right = the story of the repo.
 # `plain` is the visitor-facing one-liner; `subtitle` is the technical tagline.
@@ -148,6 +180,9 @@ DATASET: dict[str, Any] = {
         "trips.pickup_zone_id / dropoff_zone_id → zones.zone_id",
         "trips.payment_type_id → payment_types.payment_type_id",
     ],
+    # Where a curious visitor goes to see exactly what's loaded — the build script
+    # lists every table, column and row count. Public NYC TLC data underneath.
+    "explore": f"{_REPO_ROOT}/blob/main/scripts/build_warehouse.py",
 }
 
 # Curated so the columns visibly diverge. The last one is unanswerable from this
