@@ -40,7 +40,7 @@ def _model_for(provider: str) -> tuple[str, str | None]:
     """Return (model, base_url) for the chosen provider."""
     if provider == "ollama":
         return (
-            os.getenv("OLLAMA_MODEL", "qwen2.5:7b"),
+            os.getenv("OLLAMA_MODEL", "qwen2.5:3b"),
             os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
         )
     if provider == "anthropic":
