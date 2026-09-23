@@ -61,6 +61,39 @@ def _model_for(provider: str) -> tuple[str, str | None]:
     )
 
 
+def _positive_int(name: str, default: str) -> int:
+    raw = os.getenv(name, default)
+    try:
+        value = int(raw)
+    except ValueError as exc:
+        raise ValueError(f"{name} must be an integer, got {raw!r}") from exc
+    if value <= 0:
+        raise ValueError(f"{name} must be greater than 0, got {value}")
+    return value
+
+
+def _positive_float(name: str, default: str) -> float:
+    raw = os.getenv(name, default)
+    try:
+        value = float(raw)
+    except ValueError as exc:
+        raise ValueError(f"{name} must be a number, got {raw!r}") from exc
+    if value <= 0:
+        raise ValueError(f"{name} must be greater than 0, got {value}")
+    return value
+
+
+def _non_negative_float(name: str, default: str) -> float:
+    raw = os.getenv(name, default)
+    try:
+        value = float(raw)
+    except ValueError as exc:
+        raise ValueError(f"{name} must be a number, got {raw!r}") from exc
+    if value < 0:
+        raise ValueError(f"{name} must be 0 or greater, got {value}")
+    return value
+
+
 def load_settings() -> Settings:
     provider = os.getenv("DATAAGENT_PROVIDER", "ollama").strip().lower()
     model, base_url = _model_for(provider)
@@ -68,8 +101,8 @@ def load_settings() -> Settings:
         provider=provider,
         model=model,
         base_url=base_url,
-        max_steps=int(os.getenv("DATAAGENT_MAX_STEPS", "12")),
-        max_usd=float(os.getenv("DATAAGENT_MAX_USD", "0.50")),
-        sql_row_limit=int(os.getenv("DATAAGENT_SQL_ROW_LIMIT", "1000")),
-        timeout_s=float(os.getenv("DATAAGENT_TIMEOUT_S", "600")),
+        max_steps=_positive_int("DATAAGENT_MAX_STEPS", "12"),
+        max_usd=_non_negative_float("DATAAGENT_MAX_USD", "0.50"),
+        sql_row_limit=_positive_int("DATAAGENT_SQL_ROW_LIMIT", "1000"),
+        timeout_s=_positive_float("DATAAGENT_TIMEOUT_S", "600"),
     )
